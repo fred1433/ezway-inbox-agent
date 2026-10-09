@@ -1,0 +1,5 @@
+research/
+node_modules/
+.wrangler/
+.DS_Store
+qc_captures/

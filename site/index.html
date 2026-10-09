@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EZ Way Inbox</title>
+<meta name="description" content="Five sample emails for EZ Way Houses, each matched to the house it is about, logged in the sheets and answered with a draft reply.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --stucco:#EEF2EF; --paper:#FFFFFF; --ink:#1C2833; --ink-soft:#56646C; --line:#D3DCD7;
+  --palm:#2E6B4E; --sky:#2B6A9C; --mango:#A9620A; --stamp:#B3322A; --hl:#FFE45C; --pink:#F2D2C9;
+  --display:"Bricolage Grotesque", system-ui, sans-serif; --serif:"Source Serif 4", Georgia, serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--stucco);color:var(--ink);font-family:var(--display);font-size:16px;line-height:1.5;font-variation-settings:"opsz" 16}
+a{color:var(--sky);text-underline-offset:3px}
+a:focus-visible,button:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.wrap{max-width:1320px;margin:0 auto;padding:0 32px}
+
+/* breeze-block band: the mid-century concrete screen of the carports on Booker T Dr and Dartmouth Ave */
+.band{height:30px;background-color:var(--pink);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Cg fill='none' stroke='%23E3B7AB' stroke-width='2'%3E%3Ccircle cx='15' cy='15' r='9'/%3E%3Cpath d='M15 1v28M1 15h28'/%3E%3C/g%3E%3C/svg%3E");border-bottom:1px solid #E3B7AB}
+
+header.top{padding:22px 0 18px}
+.who{font-size:15px;color:var(--ink-soft);margin:0 0 8px;font-variation-settings:"wdth" 90}
+.who b{color:var(--ink);font-weight:650}
+h1{font-size:clamp(32px,3.4vw,46px);line-height:1.04;margin:0;font-weight:680;letter-spacing:-.015em;font-variation-settings:"opsz" 96,"wdth" 82}
+.lede{font-family:var(--serif);font-size:18px;line-height:1.5;max-width:74ch;margin:8px 0 0;color:#2D3A44}
+.honest{margin:8px 0 0;font-size:14px;color:var(--ink-soft);font-variation-settings:"wdth" 88}
+
+/* the desk */
+.desk{display:grid;grid-template-columns:300px 1fr;gap:28px;align-items:start;padding-bottom:64px}
+.inbox{position:sticky;top:16px}
+.inbox h2{font-size:15px;font-weight:600;margin:0 0 10px;color:var(--ink-soft);font-variation-settings:"wdth" 90}
+.inbox ol{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.mail{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:14px 12px 14px 16px;font:inherit;color:inherit;cursor:pointer;position:relative}
+.mail:hover{background:rgba(255,255,255,.55)}
+.mail[aria-expanded="true"]{background:var(--paper);box-shadow:inset 4px 0 0 var(--tone)}
+.mail .row1{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.mail .from{font-weight:650;font-size:16px}
+.mail .time{font-size:13px;color:var(--ink-soft);font-variation-settings:"wdth" 80;white-space:nowrap}
+.mail .subj{display:block;font-size:14.5px;color:#34424B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.mail .st{display:inline-block;margin-top:7px;font-size:13px;font-weight:600;color:var(--tone);font-variation-settings:"wdth" 85}
+.mail .st::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--tone);margin-right:7px;vertical-align:1px}
+.tone-ok{--tone:var(--palm)} .tone-warn{--tone:var(--mango)} .tone-review{--tone:var(--stamp)} .tone-quiet{--tone:var(--ink-soft)}
+
+/* the opened case */
+.case{background:var(--paper);border:1px solid var(--line);border-radius:3px;padding:20px 26px 26px}
+.case-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;margin-bottom:16px}
+.case-head h3{margin:0;font-size:26px;line-height:1.1;font-weight:680;font-variation-settings:"opsz" 48,"wdth" 85;letter-spacing:-.01em}
+.verdict{font-size:15px;font-weight:700;color:var(--tone);border:2px solid var(--tone);padding:4px 12px 5px;border-radius:3px;transform:rotate(-1.5deg);font-variation-settings:"wdth" 80;background:color-mix(in srgb,var(--tone) 7%,white)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+.col{display:flex;flex-direction:column;gap:22px;min-width:0}
+.cap{font-size:14px;font-weight:650;color:var(--ink-soft);margin:0 0 9px;font-variation-settings:"wdth" 88}
+.cap span{font-weight:450}
+
+.letter{font-family:var(--serif);font-size:16px;line-height:1.55;border-left:3px solid var(--line);padding:2px 0 2px 16px}
+.letter .meta{font-family:var(--display);font-size:14px;color:var(--ink-soft);margin-bottom:10px;line-height:1.45}
+.letter .meta b{color:var(--ink);font-weight:600}
+.letter p{margin:0 0 .7em}
+mark{background:linear-gradient(100deg,transparent 0 2%,var(--hl) 3% 96%,transparent 98%);color:inherit;padding:0 2px;border-radius:2px}
+.attach{display:inline-block;font-family:var(--display);font-size:13.5px;border:1px solid var(--line);border-radius:3px;padding:3px 9px;margin-top:4px;color:#34424B}
+.read{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.read li{font-size:13.5px;background:#F3F6F4;border-radius:3px;padding:3px 9px;color:#34424B}
+.read li b{font-weight:600}
+
+/* listing card, in the shape of the property sheet on ezwayhouses.com */
+.sheet{border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.photo{position:relative;aspect-ratio:16/7;overflow:hidden;background:#dfe6e2}
+.photo img{width:100%;height:100%;object-fit:cover;object-position:center 62%;display:block}
+.ribbon{position:absolute;left:0;top:12px;background:var(--palm);color:#fff;font-size:12.5px;font-weight:700;padding:3px 10px 4px;font-variation-settings:"wdth" 80;letter-spacing:.03em}
+.ribbon.rent{background:var(--sky)}
+.stamp{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.stamp span{transform:rotate(-9deg);color:var(--stamp);border:4px double var(--stamp);font-weight:800;font-size:clamp(22px,2.6vw,34px);letter-spacing:.08em;padding:4px 16px;font-variation-settings:"wdth" 75;background:rgba(255,255,255,.78);box-shadow:0 0 0 2px rgba(255,255,255,.6)}
+.sheet .info{display:grid;grid-template-columns:1fr auto;gap:2px 16px;padding:12px 14px 12px}
+.sheet .addr{font-size:21px;font-weight:680;line-height:1.15;font-variation-settings:"opsz" 30,"wdth" 85}
+.sheet .city{font-size:14px;color:var(--ink-soft)}
+.sheet .price{grid-column:2;grid-row:1/3;text-align:right;font-size:24px;font-weight:700;font-variation-settings:"wdth" 82;line-height:1.1}
+.sheet .price small{display:block;font-size:13px;font-weight:500;color:var(--ink-soft)}
+.facts{grid-column:1/3;display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px;margin:8px 0 0;padding-top:8px;border-top:1px dashed var(--line)}
+.facts div{display:flex;gap:6px}.facts dt{color:var(--ink-soft)}.facts dd{margin:0;font-weight:600}
+.src{grid-column:1/3;font-size:13px;color:var(--ink-soft);margin-top:6px}
+.facts dd.clash{color:var(--mango);text-decoration:underline wavy var(--mango);text-underline-offset:4px;text-decoration-thickness:1.5px}
+.why{margin:10px 0 0;font-size:14.5px;line-height:1.45}
+.why b{font-weight:650}
+.txn{margin:8px 0 0;font-size:14.5px}
+.alts{margin:10px 0 0;padding:9px 12px;background:#FFF8E1;border-radius:3px;font-size:14px}
+.alts p{margin:0 0 4px;font-weight:600}
+.alts ul{margin:0;padding-left:18px}
+.file{border:1px solid var(--line);border-radius:3px;padding:12px 14px;position:relative;background:linear-gradient(#F7F1E1,#F7F1E1) top/100% 6px no-repeat}
+.file .addr{font-size:19px;font-weight:680;font-variation-settings:"wdth" 85}
+
+/* rows written */
+.chg{border:1px solid var(--line);border-radius:3px;margin-bottom:8px}
+.chg h4{margin:0;padding:7px 12px;font-size:14px;font-weight:650;background:#F5F7F6;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+.chg h4 span{font-weight:500;color:var(--ink-soft)}
+.chg .because{margin:0;padding:6px 12px 0;font-size:13px;color:var(--ink-soft)}
+.chg dl{margin:0;padding:6px 12px 8px;display:grid;grid-template-columns:110px 1fr;gap:3px 10px;font-size:14px}
+.chg dt{color:var(--ink-soft);font-variation-settings:"wdth" 85;overflow-wrap:anywhere}
+.chg dd{margin:0;overflow-wrap:anywhere}
+.chg del{color:#8A969C;margin-right:6px}
+.chg ins{text-decoration:none;background:linear-gradient(100deg,transparent 0 1%,var(--hl) 2% 97%,transparent 99%);padding:0 2px}
+
+/* the draft */
+.draft{border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.draft .dh{font-size:13.5px;color:var(--ink-soft);padding:8px 14px;border-bottom:1px solid var(--line);background:#F5F7F6;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.draft .dh b{color:var(--ink);font-weight:600}
+.pill{font-weight:700;color:var(--sky);font-variation-settings:"wdth" 85}
+.draft .body{font-family:var(--serif);font-size:16px;line-height:1.6;padding:14px 16px;white-space:pre-wrap}
+.ins{text-decoration:underline;text-decoration-color:var(--palm);text-decoration-thickness:2px;text-underline-offset:4px}
+.legend{font-size:13px;color:var(--ink-soft);padding:0 16px 12px}
+.legend i{font-style:normal;text-decoration:underline;text-decoration-color:var(--palm);text-decoration-thickness:2px;text-underline-offset:4px;color:var(--ink)}
+
+/* behind it */
+.behind{background:var(--paper);border-top:1px solid var(--line);padding:56px 0 64px}
+.behind .cols{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:56px}
+.behind h2{font-size:30px;line-height:1.1;margin:0 0 18px;font-weight:680;font-variation-settings:"opsz" 60,"wdth" 85;letter-spacing:-.01em}
+.rules{font-family:var(--serif);font-size:17px;line-height:1.6;margin:0;padding:0;list-style:none}
+.rules li{padding:10px 0;border-top:1px solid var(--line)}
+.rules li b{font-family:var(--display);font-weight:650}
+table{border-collapse:collapse;width:100%;font-size:15px}
+caption{text-align:left;font-weight:650;font-size:17px;margin-bottom:10px}
+td,th{text-align:left;padding:9px 10px 9px 0;border-top:1px solid var(--line);vertical-align:top}
+th{font-weight:600;width:44%}
+td .y{color:var(--palm);font-weight:600}
+td .n{color:var(--mango);font-weight:600}
+.code{margin-top:22px;font-size:15.5px;line-height:1.55}
+.code a{font-weight:600}
+footer{padding:26px 0 40px;font-size:14px;color:var(--ink-soft)}
+footer .wrap{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+footer img{width:20px;height:20px}
+
+@media (max-width:1100px){.grid{display:flex;flex-direction:column;gap:24px}.col{display:contents}.a-email{order:1}.a-found{order:2}.a-changes{order:3}.a-draft{order:4}}
+@media (max-width:860px){
+  .wrap{padding:0 16px}
+  .desk{display:block}
+  .inbox{position:static}
+  .case{border-radius:0;border-left:0;border-right:0;padding:18px 16px 22px;margin:0 -16px;border-top:0}
+  .mail[aria-expanded="true"]{box-shadow:inset 4px 0 0 var(--tone)}
+  .behind .cols{grid-template-columns:1fr;gap:36px}
+  .photo{aspect-ratio:16/9}
+  .chg dl{grid-template-columns:96px 1fr}
+  .lede{font-size:17.5px}
+  .trace li{grid-template-columns:80px 1fr}
+}
+@media (prefers-reduced-motion:no-preference){.case{animation:open .22s ease-out}@keyframes open{from{opacity:.4}to{opacity:1}}}
+</style>
+</head>
+<body>
+<div class="band" aria-hidden="true"></div>
+<header class="top wrap">
+  <p class="who"><b>EZ Way Houses</b>, inbox agent demo</p>
+  <h1>This morning's inbox, matched to your houses.</h1>
+  <p class="lede">Five sample emails. Each one is matched to the house or the person it is about, logged in the sheets, and answered with a reply that waits in Gmail as a draft. Pick an email to open it.</p>
+  <p class="honest">Sample emails · Public listing snapshot dated Oct 9, 2026 · Illustrative replies</p>
+</header>
+
+<main class="wrap desk" id="desk">
+  <nav class="inbox" aria-label="Sample emails">
+    <h2>Inbox, Friday Oct 9</h2>
+    <ol id="list"></ol>
+  </nav>
+  <section id="case" class="case" aria-live="polite"></section>
+</main>
+
+<section class="behind">
+  <div class="wrap cols">
+    <div>
+      <h2>What runs behind it</h2>
+      <ul class="rules">
+        <li><b>It lives in one Gmail account.</b> A Google Apps Script, authorized by the owner of that mailbox, checks for new mail on a timer and works through a small batch each time. Rolling it out to more of the team depends on which inboxes receive these emails and who owns the sheets.</li>
+        <li><b>It never sends.</b> The code has no send operation. Replies wait as drafts in the same thread, addressed to the sender, until someone on the team reads and sends them.</li>
+        <li><b>The numbers come from your rows, not from the model.</b> Every price, rent, deposit, address and date in a draft is filled in by the code from the matched record, then checked again before the draft is saved. If anything does not match, the draft is held for a person.</li>
+        <li><b>It writes little on its own.</b> New contacts, leads and interactions, and last-contact dates. A new closing date, price or term goes to a Review tab and the current value stays where it is.</li>
+        <li><b>Nothing is done twice.</b> A journal keyed by Gmail message keeps track of each step, so a rerun after a stop never makes a second lead or a second draft.</li>
+      </ul>
+    </div>
+    <div>
+      <table>
+        <caption>What has been tested so far</caption>
+        <tbody>
+          <tr><th>Matching and sheet writes</th><td><span class="y">Run</span> on every build of this page, 30 automated tests with an in-memory Gmail and Sheets</td></tr>
+          <tr><th>Resume after a stop, duplicates</th><td><span class="y">Tested</span> with simulated stops and two overlapping runs</td></tr>
+          <tr><th>Reading emails, wording replies</th><td><span class="n">Recorded outputs</span> prepared for this demo</td></tr>
+          <tr><th>Gmail and Sheets calls</th><td><span class="n">Written</span>, not yet run on a real account</td></tr>
+          <tr><th>Gemini</th><td><span class="n">Adapter written</span> from the Oct 9 documentation, not yet run</td></tr>
+          <tr><th>Installation at EZ Way Houses</th><td><span class="n">Not done</span></td></tr>
+        </tbody>
+      </table>
+      <p class="code">Your public listings were loaded into a sheet for this demo; the houses, prices and terms above are as they appeared on ezwayhouses.com on Oct 9, 2026. Every person, lead and transaction is made up.</p>
+      <p class="code">The code, the listing snapshot and the tests: <a href="https://github.com/fred1433/ezway-inbox-agent">github.com/fred1433/ezway-inbox-agent</a>. Reply examples were prepared with Claude. The repository includes a Gemini API adapter that has not yet been tested against the API.</p>
+    </div>
+  </div>
+</section>
+<footer><div class="wrap"><img src="favicon.svg" alt=""> <span>Built by <a href="https://theaipipe.com">The AI Pipe</a></span></div></footer>
+
+<script src="data.js"></script>
+<script>
+(function(){
+  var D = window.EZ, list = document.getElementById('list'), panel = document.getElementById('case');
+  var mq = window.matchMedia('(max-width:860px)');
+  var esc = function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+  var money = function(n){return n==null?'':'$'+Number(n).toLocaleString('en-US');};
+  var FIN = {'FHA/VA/Conv':'FHA, VA, conventional or cash','Cash/Hard.M':'Cash or hard money only'};
+  var FIELD = {name:'Name',email:'Email',role:'Role',language:'Language',last_contact:'Last contact',kind:'Kind',property_address:'Property',stage:'Stage',lead_id:'Linked to',category:'Category',summary:'Summary',ref:'Record',field:'Field',current_value:'Current value',proposed_value:'Proposed',status:'Status'};
+  var TABNOTE = {added:'new row',updated:'updated'};
+  var VAL = {en:'English',es:'Spanish',closing_date:'Closing date'};
+  var CAT = {buyer_inquiry:'Buyer inquiry',rental_inquiry:'Rental inquiry',seller_lead:'Seller',contract_update:'Contract update'};
+  var FINX = {fha:'FHA',va:'VA',conventional:'Conventional',cash:'Cash',hard_money:'Hard money',section8_voucher:'Section 8 voucher'};
+
+  function highlight(text, needles){
+    var out = esc(text);
+    needles.forEach(function(n){
+      if(!n) return;
+      var key = esc(n.split(',')[0]);
+      var i = out.toLowerCase().indexOf(key.toLowerCase());
+      if(i>=0) out = out.slice(0,i)+'<mark>'+out.slice(i,i+key.length)+'</mark>'+out.slice(i+key.length);
+    });
+    return out;
+  }
+  function draftHtml(d){
+    var out = esc(d.text);
+    d.inserted.slice().sort(function(a,b){return b.length-a.length;}).forEach(function(v){
+      var k = esc(v); if(!k) return;
+      out = out.split(k).join('\u0001'+k+'\u0002');
+    });
+    return out.replace(/\u0001/g,'<span class="ins">').replace(/\u0002/g,'</span>').replace(/<span class="ins">([^<]*)<span class="ins">([^<]*)<\/span>([^<]*)<\/span>/g,'<span class="ins">$1$2$3</span>');
+  }
+  function letter(c){
+    var paras = highlight(c.body, c.mentions).split(/\n\n/).map(function(p){return '<p>'+p.replace(/\n/g,'<br>')+'</p>';}).join('');
+    var x = c.extraction, chips = [];
+    if(CAT[x.category]) chips.push('<li><b>'+CAT[x.category]+'</b></li>');
+    chips.push('<li>'+(x.language==='es'?'Spanish':'English')+'</li>');
+    if(FINX[x.financing]) chips.push('<li>'+FINX[x.financing]+'</li>');
+    if(x.budget_max) chips.push('<li>Budget '+money(x.budget_max)+'</li>');
+    if(x.area) chips.push('<li>'+esc(x.area)+'</li>');
+    if(x.contract_change) chips.push('<li>Closing date change</li>');
+    return '<div class="a-email"><p class="cap">The email <span>received '+esc(c.time)+'</span></p><div class="letter"><div class="meta"><b>'+esc(c.from)+'</b> &lt;'+esc(c.email)+'&gt;<br>'+esc(c.subject)+(c.threadNote?'<br><i>'+esc(c.threadNote)+'</i>':'')+'</div>'+paras+(c.attachments.length?'<span class="attach">'+esc(c.attachments[0])+'</span>':'')+'</div><ul class="read" aria-label="Read from the email">'+chips.join('')+'</ul></div>';
+  }
+  function traceHtml(c, skip){
+    return '<ul class="trace">'+c.trace.filter(function(t){return skip.indexOf(t.step)<0;}).map(function(t){
+      return '<li><span class="k">'+esc(t.step)+'</span><span class="v"><b>'+esc(t.result)+'</b>'+(t.why?'<small>'+esc(t.why)+'</small>':'')+'</span></li>';
+    }).join('')+'</ul>';
+  }
+  function found(c){
+    var l = c.listing, h = '<div class="a-found"><p class="cap">What it matched</p>';
+    if(l){
+      var rent = l.status==='FOR RENT';
+      var why = c.trace.filter(function(t){return t.step==='Listing';})[0];
+      var txn = c.trace.filter(function(t){return t.step==='Transaction';})[0];
+      h += '<div class="sheet"><div class="photo">'+(l.photo?'<img src="'+l.photo+'" alt="Front of '+esc(l.address)+'" width="1000" height="667">':'')
+        +(l.status==='UNDER CONTRACT'?'<div class="stamp"><span>UNDER CONTRACT</span></div>':'<span class="ribbon'+(rent?' rent':'')+'">'+esc(l.status)+'</span>')+'</div>'
+        +'<div class="info"><div class="addr"><mark>'+esc(l.address)+'</mark></div>'
+        +'<div class="price">'+(rent?money(l.rent)+'<small>a month</small>':money(l.price))+'</div>'
+        +'<div class="city">'+esc(l.city)+', FL '+esc(l.zip)+'</div>'
+        +'<dl class="facts"><div><dt>'+(rent?'Deposit':'Financing')+'</dt><dd'+(c.tone==='warn'?' class="clash"':'')+'>'+(rent?money(l.deposit):esc(FIN[l.financing]||l.financing))+'</dd></div><div><dt>Beds</dt><dd>'+l.beds+'</dd></div><div><dt>Baths</dt><dd>'+l.baths+'</dd></div>'+(l.section8?'<div><dt>Listing says</dt><dd>Section 8 welcome</dd></div>':'')+'</dl>'
+        +'<div class="src"><a href="'+esc(l.url)+'">This listing on ezwayhouses.com</a>, as read on Oct 9</div></div></div>';
+      if(why) h += '<p class="why"><b>Why this house:</b> '+esc(why.why)+'.</p>';
+      if(txn) h += '<p class="txn"><b>Transaction found:</b> '+esc(txn.result)+' (sample record).</p>';
+      if(c.alternatives.length){
+        h += '<div class="alts"><p>Listed with FHA, in Tampa, at or under '+money(c.extraction.budget_max)+'</p><ul>'+c.alternatives.map(function(a){return '<li>'+esc(a.address)+', '+money(a.price)+', '+a.beds+' bed</li>';}).join('')+'</ul></div>';
+      }
+    } else {
+      var lead = c.trace.filter(function(t){return t.step==='Lead';})[0];
+      h += '<div class="file"><div class="addr"><mark>'+esc(c.extraction.seller_property)+'</mark></div><div class="city">The seller\'s own house, not one of your listings. Sample lead, opened Sep 24.</div></div>';
+      if(lead) h += '<p class="why"><b>Why this lead:</b> '+esc(lead.why)+'.</p>';
+    }
+    return h+'</div>';
+  }
+  function changes(c){
+    var because = {Contacts:'Contact', Leads:'Lead', Review:'Change'};
+    return '<div class="a-changes"><p class="cap">What it wrote in the sheets</p>'+c.changes.map(function(ch){
+      var t = c.trace.filter(function(x){return x.step===because[ch.tab];})[0];
+      ch.rows.forEach(function(r){ if(VAL[r.after]) r.after = VAL[r.after]; });
+      return '<div class="chg"><h4>'+esc(ch.tab)+' <span>'+esc(ch.id)+', '+TABNOTE[ch.kind]+'</span></h4>'+(t&&t.why?'<p class="because">'+esc(t.why.charAt(0).toUpperCase()+t.why.slice(1))+'</p>':'')+'<dl>'+ch.rows.map(function(r){
+        var hl = r.before!==null || r.field==='proposed_value';
+        var v = r.before===null ? (hl?'<ins>'+esc(r.after)+'</ins>':esc(r.after)) : '<del>'+esc(r.before)+'</del><ins>'+esc(r.after)+'</ins>';
+        return '<dt>'+esc(FIELD[r.field]||r.field)+'</dt><dd>'+v+'</dd>';
+      }).join('')+'</dl></div>';
+    }).join('')+'</div>';
+  }
+  function draft(c){
+    var d = c.draft;
+    return '<div class="a-draft"><p class="cap">The reply it left in Gmail</p><div class="draft"><div class="dh"><span>To <b>'+esc(d.to)+'</b><br>'+esc(d.subject)+'</span><span class="pill">Draft preview, not sent</span></div><div class="body">'+draftHtml(d)+'</div><div class="legend"><i>Underlined</i>: filled in by the code from the record, not typed by the model.</div></div></div>';
+  }
+  function titleOf(c){
+    if(c.listing) return c.listing.address;
+    return c.extraction.seller_property || c.subject;
+  }
+  function renderCase(i){
+    var c = D.cases[i];
+    panel.className = 'case tone-'+c.tone;
+    panel.innerHTML = '<div class="case-head"><h3>'+esc(titleOf(c))+'</h3><span class="verdict">'+esc(c.status)+'</span></div><div class="grid"><div class="col">'+letter(c)+draft(c)+'</div><div class="col">'+found(c)+changes(c)+'</div></div>';
+  }
+  var buttons = [];
+  D.cases.forEach(function(c, i){
+    var li = document.createElement('li');
+    li.innerHTML = '<button class="mail tone-'+c.tone+'" aria-expanded="false" aria-controls="case"><span class="row1"><span class="from">'+esc(c.from)+'</span><span class="time">'+esc(c.time)+'</span></span><span class="subj">'+esc(c.subject)+'</span><span class="st">'+esc(c.status)+'</span></button>';
+    var b = li.firstChild;
+    b.addEventListener('click', function(){ select(i, true); });
+    buttons.push(b); list.appendChild(li);
+  });
+  var current = -1;
+  function place(){
+    if(mq.matches) buttons[current].parentNode.appendChild(panel);
+    else if(panel.parentNode !== document.getElementById('desk')) document.getElementById('desk').appendChild(panel);
+  }
+  function select(i, user){
+    current = i;
+    buttons.forEach(function(b, j){ b.setAttribute('aria-expanded', j===i ? 'true' : 'false'); });
+    renderCase(i); place();
+    if(user && mq.matches) buttons[i].scrollIntoView({block:'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+  }
+  (mq.addEventListener ? mq.addEventListener('change', place) : mq.addListener(place));
+  select(0, false);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+PASS [cases] Bahia: abbreviated address matched to the one listing, new contact and lead, draft with listed terms
+PASS [cases] FHA buyer on a cash or hard money listing: Financing mismatch, alternatives within budget and area only
+PASS [cases] Returning seller: Existing lead found, interaction appended, last contact updated
+PASS [cases] Section 8 rental in Spanish: reply in Spanish with published rent and deposit, no acceptance claimed
+PASS [cases] Amendment: transaction found, change waits in Review, closing date in the transaction unchanged
+PASS [cases] Sender with a Spanish name writing in English gets an English reply
+PASS [page] site/data.js regenerates identically from the repository
+PASS [safety] No send operation anywhere in src/
+PASS [safety] Draft is a reply in the same thread, to the sender only, with the right subject
+PASS [safety] Hostile email: extra model fields dropped, draft with a foreign address and an invented price blocked, nothing else written
+PASS [safety] Text from an email starting with = is written as text, never as a formula
+PASS [safety] Writes outside the closed list are refused (a contract date, an unknown tab)
+PASS [facts] An amount or an address not in the matched record blocks the draft
+PASS [facts] Rent and deposit are never swapped
+PASS [facts] Under contract with no backup field: the draft says the team will confirm, no backup offer
+PASS [facts] FHA on a cash listing with no budget or area: the draft asks for them and suggests no house
+PASS [records] One person selling two houses has two leads
+PASS [records] "82nd" fits two listings: shown as ambiguous, sent to Review, no draft
+PASS [records] Unit, direction and city are kept when matching
+PASS [records] Spam: labelled, nothing written, no draft
+PASS [records] Contractor and investor: contact and interaction, short acknowledgement, form link from config only
+PASS [journal] 1. Replaying a finished message creates no lead and no draft
+PASS [journal] 2. A new message in an already processed thread is processed
+PASS [journal] 3. A stop right after the draft is created is reconciled without a second draft
+PASS [journal] 4. An uncertain model result becomes a Review item
+PASS [journal] 5. A draft edited by a person is kept as is
+PASS [journal] 6. A draft already sent is not created again (finished run, and a stop before the journal caught up)
+PASS [journal] 7. Two runs at the same time do not apply the same operation twice
+PASS [runs] A run stops at MAX_PER_RUN and the next run continues
+PASS [runs] A failing message is recorded in the journal and goes to review after three attempts
+
+30/30 passed
