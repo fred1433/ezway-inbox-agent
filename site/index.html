@@ -41,7 +41,7 @@ h1{font-size:clamp(32px,3.4vw,46px);line-height:1.04;margin:0;font-weight:680;le
 .inbox ol{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
 .mail{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:14px 12px 14px 16px;font:inherit;color:inherit;cursor:pointer;position:relative}
 .mail:hover{background:rgba(255,255,255,.55)}
-.mail[aria-expanded="true"]{background:var(--paper);box-shadow:inset 4px 0 0 var(--tone)}
+.mail[aria-pressed="true"]{background:var(--paper);box-shadow:inset 4px 0 0 var(--tone)}
 .mail .row1{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
 .mail .from{font-weight:650;font-size:16px}
 .mail .time{font-size:13px;color:var(--ink-soft);font-variation-settings:"wdth" 80;white-space:nowrap}
@@ -65,6 +65,9 @@ h1{font-size:clamp(32px,3.4vw,46px);line-height:1.04;margin:0;font-weight:680;le
 .letter .meta b{color:var(--ink);font-weight:600}
 .letter p{margin:0 0 .7em}
 mark{background:var(--hl);color:inherit;padding:0;border-radius:2px;box-shadow:0 0 0 2px var(--hl)}
+.attnote{font-family:var(--display);font-size:13px;color:var(--ink-soft);margin:6px 0 0}
+.chips{display:none}
+.next{display:none}
 .attach{display:inline-block;font-family:var(--display);font-size:13.5px;border:1px solid var(--line);border-radius:3px;padding:3px 9px;margin-top:4px;color:#34424B}
 .read{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
 .read li{font-size:13.5px;background:#F3F6F4;border-radius:3px;padding:3px 9px;color:#34424B}
@@ -101,7 +104,7 @@ mark{background:var(--hl);color:inherit;padding:0;border-radius:2px;box-shadow:0
 .chg h4{margin:0;padding:7px 12px;font-size:14px;font-weight:650;background:#F5F7F6;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
 .chg h4 span{font-weight:500;color:var(--ink-soft)}
 .chg .because{margin:0;padding:6px 12px 0;font-size:13px;color:var(--ink-soft)}
-.chg dl{margin:0;padding:6px 12px 8px;display:grid;grid-template-columns:110px 1fr;gap:3px 10px;font-size:14px}
+.chg dl{margin:0;padding:6px 12px 8px;display:grid;grid-template-columns:minmax(110px,38%) 1fr;gap:3px 10px;font-size:14px}
 .chg dt{color:var(--ink-soft);font-variation-settings:"wdth" 85;overflow-wrap:anywhere}
 .chg dd{margin:0;overflow-wrap:anywhere}
 .chg del{color:#8A969C;margin-right:6px}
@@ -140,12 +143,18 @@ footer img{width:20px;height:20px}
 @media (max-width:860px){
   .wrap{padding:0 16px}
   .desk{display:block}
-  .inbox{position:static}
+  .inbox{display:none}
+  .chips{display:block;position:sticky;top:0;z-index:5;background:var(--stucco);margin:0 -16px;padding:8px 16px;border-bottom:1px solid var(--line)}
+  .chips ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .chip{width:100%;font:inherit;font-size:13.5px;font-weight:600;color:var(--ink);background:rgba(255,255,255,.6);border:1px solid var(--line);border-radius:3px;padding:6px 2px 7px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chip::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--tone);margin-right:5px;vertical-align:1px}
+  .chip[aria-current="true"]{background:var(--paper);border-color:var(--tone);box-shadow:inset 0 -3px 0 var(--tone)}
+  .next{display:block;width:100%;margin-top:22px;font:inherit;font-weight:650;font-size:15px;color:var(--ink);background:#F5F7F6;border:1px solid var(--line);border-radius:3px;padding:11px 12px;cursor:pointer;text-align:left}
   .case{border-radius:0;border-left:0;border-right:0;padding:18px 16px 22px;margin:0 -16px;border-top:0}
-  .mail[aria-expanded="true"]{box-shadow:inset 4px 0 0 var(--tone)}
+  .mail[aria-pressed="true"]{box-shadow:inset 4px 0 0 var(--tone)}
   .behind .cols{grid-template-columns:1fr;gap:36px}
   .photo{aspect-ratio:16/9}
-  .chg dl{grid-template-columns:96px 1fr}
+  .chg dl{grid-template-columns:minmax(96px,40%) 1fr}
   .lede{font-size:17.5px}
   .trace li{grid-template-columns:80px 1fr}
 }
@@ -157,7 +166,7 @@ footer img{width:20px;height:20px}
 <header class="top wrap">
   <p class="who"><b>EZ Way Houses</b>, inbox agent demo</p>
   <h1>This morning's inbox, matched to your houses.</h1>
-  <p class="lede">Five sample emails. Each one is matched to the house or the person it is about, logged in the sheets, and given a draft reply to leave in Gmail. Pick an email to open it.</p>
+  <p class="lede">Open an email to see what it matched, the rows it writes and the draft reply.</p>
   <p class="honest">Sample emails · Public listing snapshot dated Oct 9, 2026 · Illustrative replies</p>
 </header>
 
@@ -166,6 +175,7 @@ footer img{width:20px;height:20px}
     <h2>Inbox, Friday Oct 9</h2>
     <ol id="list"></ol>
   </nav>
+  <nav class="chips" aria-label="Sample emails, compact"><ol id="chips"></ol></nav>
   <section id="case" class="case" aria-live="polite"></section>
 </main>
 
@@ -175,25 +185,25 @@ footer img{width:20px;height:20px}
       <h2>What runs behind it</h2>
       <ul class="rules">
         <li><b>It lives in one Gmail account.</b> A Google Apps Script, authorized by the owner of that mailbox, checks for new mail on a timer and works through a small batch each time. Rolling it out to more of the team depends on which inboxes receive these emails and who owns the sheets.</li>
-        <li><b>It never sends.</b> The code has no send operation. Replies wait as drafts in the same thread, addressed to the sender, until someone on the team reads and sends them.</li>
-        <li><b>The numbers come from the listing record, not from the model.</b> Prices, rents, deposits, addresses and dates are filled in by the code from the matched record. Before a draft is saved, every number in it must appear in that record or in the email being answered, and words like approved, eligible, qualify or accepted are refused. If anything fails, the draft is held for a person.</li>
+        <li><b>The code never sends.</b> It has no send operation. Replies are created as drafts in the same thread, for someone on the team to read and send.</li>
+        <li><b>Listing facts are inserted from the listing record.</b> Changes proposed in an email are quoted from that email and queued for review. A check rejects drafts whose wording goes beyond the facts the code inserted. It is a guard, not a proof; a person reviews every draft.</li>
         <li><b>It writes little on its own.</b> New contacts, leads and interactions, and last-contact dates. A new closing date, price or term goes to a Review tab and the current value stays where it is.</li>
-        <li><b>Nothing is done twice.</b> A journal keyed by Gmail message keeps track of each step, and each lead remembers the email that created it, so a rerun after a stop does not make a second lead or a second draft. Only mail received after installation is read, and a thread never gets two drafts.</li>
+        <li><b>Each message is logged; a retry resumes the saved plan instead of redoing it (tested with simulated failures).</b> If the script finds its own draft for a message, it does not create another. Only mail received after installation is read, and messages from the mailbox owner or an alias are not treated as incoming.</li>
       </ul>
     </div>
     <div>
       <table>
         <caption>What has been tested so far</caption>
         <tbody>
-          <tr><th>Matching and sheet writes</th><td><span class="y">Run</span> on every build of this page, 38 automated tests with an in-memory Gmail and Sheets</td></tr>
-          <tr><th>Resume after a stop, duplicates</th><td><span class="y">Tested</span> with simulated stops and two overlapping runs</td></tr>
+          <tr><th>Matching and sheet writes</th><td><span class="y">Run</span> on every build of this page, 58 automated tests with an in-memory Gmail and Sheets</td></tr>
+          <tr><th>Retries, duplicates, sender identity</th><td><span class="y">Tested</span> with simulated failures, overlapping runs, aliases and reply-to addresses</td></tr>
           <tr><th>Reading emails, wording replies</th><td><span class="n">Recorded outputs</span> prepared for this demo</td></tr>
           <tr><th>Gmail and Sheets calls</th><td><span class="n">Written</span>, not yet run on a real account</td></tr>
           <tr><th>Gemini</th><td><span class="n">Adapter written</span> from the Oct 9 documentation, not yet run</td></tr>
           <tr><th>Installation at EZ Way Houses</th><td><span class="n">Not done</span></td></tr>
         </tbody>
       </table>
-      <p class="code">Your public listings were loaded into a sheet for this demo; the houses, prices and terms above are as they appeared on ezwayhouses.com on Oct 9, 2026. Every person, lead and transaction is made up.</p>
+      <p class="code">Your public listings were loaded into a sheet for this demo; the houses, prices and terms above are as they appeared on ezwayhouses.com on Oct 9, 2026. The people, leads and transactions are made up.</p>
       <p class="code">The code, the listing snapshot and the tests: <a href="https://github.com/fred1433/ezway-inbox-agent">github.com/fred1433/ezway-inbox-agent</a>. Reply examples were prepared with Claude. The repository includes a Gemini API adapter that has not yet been tested against the API.</p>
     </div>
   </div>
@@ -209,7 +219,7 @@ footer img{width:20px;height:20px}
   var shortDate = function(iso){var p=String(iso).split('-');return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Number(p[1])-1]+' '+Number(p[2]);};
   var money = function(n){return n==null?'':'$'+Number(n).toLocaleString('en-US');};
   var FIN = {'FHA/VA/Conv':'FHA, VA, conventional or cash','Cash/Hard.M':'Cash or hard money only'};
-  var FIELD = {name:'Name',email:'Email',role:'Role',language:'Language',last_contact:'Last contact',kind:'Kind',property_address:'Property',stage:'Stage',lead_id:'Linked to',category:'Category',summary:'Summary',ref:'Record',field:'Field',current_value:'Current value',proposed_value:'Proposed',status:'Status'};
+  var FIELD = {name:'Name',email:'Email',role:'Role',language:'Language',last_contact:'Last contact',kind:'Kind',property_address:'Property',stage:'Stage',lead_id:'Linked to',category:'Category',summary:'Summary',ref:'Record',field:'Field',current_value:'Current value, from the transaction record',proposed_value:'Proposed, read from the email, not applied',status:'Status'};
   var TABNOTE = {added:'new row',updated:'updated'};
   var VAL = {en:'English',es:'Spanish',closing_date:'Closing date'};
   var CAT = {buyer_inquiry:'Buyer inquiry',rental_inquiry:'Rental inquiry',seller_lead:'Seller',contract_update:'Contract update'};
@@ -242,7 +252,7 @@ footer img{width:20px;height:20px}
     if(x.budget_max) chips.push('<li>Budget '+money(x.budget_max)+'</li>');
     if(x.area) chips.push('<li>'+esc(x.area)+'</li>');
     if(x.contract_change) chips.push('<li>Closing date change</li>');
-    return '<div class="a-email"><p class="cap">The email <span>received '+esc(c.time)+'</span></p><div class="letter"><div class="meta"><b>'+esc(c.from)+'</b> &lt;'+esc(c.email)+'&gt;<br>'+esc(c.subject)+(c.threadNote?'<br><i>'+esc(c.threadNote)+'</i>':'')+'</div>'+paras+(c.attachments.length?'<span class="attach">'+esc(c.attachments[0])+'</span>':'')+'</div><ul class="read" aria-label="Read from the email">'+chips.join('')+'</ul></div>';
+    return '<div class="a-email"><p class="cap">The email <span>received '+esc(c.time)+'</span></p><div class="letter"><div class="meta"><b>'+esc(c.from)+'</b> &lt;'+esc(c.email)+'&gt;<br>'+esc(c.subject)+(c.threadNote?'<br><i>'+esc(c.threadNote)+'</i>':'')+'</div>'+paras+(c.attachments.length?'<span class="attach">'+esc(c.attachments[0])+'</span><p class="attnote">Change read from the email text; the attached PDF was not opened.</p>':'')+'</div><ul class="read" aria-label="Read from the email">'+chips.join('')+'</ul></div>';
   }
   function traceHtml(c, skip){
     return '<ul class="trace">'+c.trace.filter(function(t){return skip.indexOf(t.step)<0;}).map(function(t){
@@ -288,7 +298,7 @@ footer img{width:20px;height:20px}
   }
   function draft(c){
     var d = c.draft;
-    return '<div class="a-draft"><p class="cap">The draft reply it would leave in Gmail</p><div class="draft"><div class="dh"><span>To <b>'+esc(d.to)+'</b><br>'+esc(d.subject)+'</span><span class="pill">Draft preview, not sent</span></div><div class="body">'+draftHtml(d)+'</div><div class="legend"><i>Underlined</i>: filled in by the code from the record, not typed by the model.</div></div></div>';
+    return '<div class="a-draft"><p class="cap">The draft reply it would leave in Gmail</p><div class="draft"><div class="dh"><span>To <b>'+esc(d.to)+'</b><br>'+esc(d.subject)+'</span><span class="pill">Draft preview, not sent</span></div><div class="body">'+draftHtml(d)+'</div><div class="legend"><i>Underlined</i>: inserted by the code, from the listing record or, for a proposed change, quoted from the email.</div></div></div>';
   }
   function titleOf(c){
     if(c.listing) return c.listing.address;
@@ -299,26 +309,31 @@ footer img{width:20px;height:20px}
     panel.className = 'case tone-'+c.tone;
     panel.innerHTML = '<div class="case-head"><h3>'+esc(titleOf(c))+'</h3><span class="verdict">'+esc(c.status)+'</span></div><div class="grid"><div class="col">'+letter(c)+draft(c)+'</div><div class="col">'+found(c)+changes(c)+'</div></div>';
   }
-  var buttons = [];
+  var buttons = [], chips = [], chipList = document.getElementById('chips');
   D.cases.forEach(function(c, i){
     var li = document.createElement('li');
-    li.innerHTML = '<button class="mail tone-'+c.tone+'" aria-expanded="false" aria-controls="case"><span class="row1"><span class="from">'+esc(c.from)+'</span><span class="time">'+esc(c.time)+'</span></span><span class="subj">'+esc(c.subject)+'</span><span class="st">'+esc(c.status)+'</span></button>';
+    li.innerHTML = '<button class="mail tone-'+c.tone+'" aria-pressed="false" aria-controls="case"><span class="row1"><span class="from">'+esc(c.from)+'</span><span class="time">'+esc(c.time)+'</span></span><span class="subj">'+esc(c.subject)+'</span><span class="st">'+esc(c.status)+'</span></button>';
     var b = li.firstChild;
-    b.addEventListener('click', function(){ select(i, true); });
+    b.addEventListener('click', function(){ select(i, false); });
     buttons.push(b); list.appendChild(li);
+    var cl = document.createElement('li');
+    cl.innerHTML = '<button class="chip tone-'+c.tone+'" aria-current="false" aria-controls="case" title="'+esc(c.from)+': '+esc(c.status)+'">'+esc(c.from.split(' ')[0])+'</button>';
+    cl.firstChild.addEventListener('click', function(){ select(i, true); });
+    chips.push(cl.firstChild); chipList.appendChild(cl);
   });
-  var current = -1;
-  function place(){
-    if(mq.matches) buttons[current].parentNode.appendChild(panel);
-    else if(panel.parentNode !== document.getElementById('desk')) document.getElementById('desk').appendChild(panel);
+  function select(i, scroll){
+    buttons.forEach(function(b, j){ b.setAttribute('aria-pressed', j===i ? 'true' : 'false'); });
+    chips.forEach(function(b, j){ b.setAttribute('aria-current', j===i ? 'true' : 'false'); });
+    renderCase(i);
+    var n = (i+1) % D.cases.length, nb = document.createElement('button');
+    nb.className = 'next'; nb.textContent = 'Next case: ' + D.cases[n].from + ', ' + D.cases[n].status.toLowerCase();
+    nb.addEventListener('click', function(){ select(n, true); });
+    panel.appendChild(nb);
+    if(scroll && mq.matches){
+      var top = panel.getBoundingClientRect().top + window.pageYOffset - document.getElementById('chips').offsetHeight - 24;
+      window.scrollTo({top: top, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+    }
   }
-  function select(i, user){
-    current = i;
-    buttons.forEach(function(b, j){ b.setAttribute('aria-expanded', j===i ? 'true' : 'false'); });
-    renderCase(i); place();
-    if(user && mq.matches) buttons[i].scrollIntoView({block:'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
-  }
-  (mq.addEventListener ? mq.addEventListener('change', place) : mq.addListener(place));
   select(0, false);
 })();
 </script>

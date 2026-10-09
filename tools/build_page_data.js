@@ -28,12 +28,6 @@ function build() {
         : Object.keys(a.after).filter((f) => String(a.before[f]) !== String(a.after[f])).map((f) => ({ field: f, before: String(a.before[f]), after: String(a.after[f]) }));
       return { tab: a.tab, id: a.id, kind: a.kind, rows };
     }).filter((c) => c.rows.length);
-    // the extra slot values the code inserted, so the page can mark them in the draft
-    const f = plan.facts;
-    const inserted = [f.address, f.city, f.price && '$' + f.price.toLocaleString('en-US'), f.rent && '$' + f.rent.toLocaleString('en-US'), f.deposit && '$' + f.deposit.toLocaleString('en-US'), f.seller_property, f.current_value, f.proposed_value]
-      .concat((f.alternatives || []).flatMap((a) => [a.address, '$' + a.price.toLocaleString('en-US')]))
-      .concat(f.financing_listed ? [G.FINANCING_WORDS[f.financing_listed][r.extraction.language]] : [])
-      .filter(Boolean);
     return {
       id: msg.id, time: msg.time, from: msg.from.replace(/\s*<.*$/, ''), email: msg.from.match(/<([^>]+)>/)[1], subject: msg.subject,
       body: msg.body, attachments: msg.attachments || [], threadNote: msg.threadNote || null,
@@ -43,9 +37,9 @@ function build() {
       trace: plan.trace,
       listing: l ? { id: l.listing_id, address: l.address, city: l.city, zip: l.zip, status: l.status, type: l.type, financing: l.financing_listed, price: l.price, rent: l.rent, deposit: l.deposit, beds: l.beds, baths: l.baths, section8: l.section8_welcome, url: l.source_url, captured: l.captured_at, photo: PHOTOS[l.listing_id] || null } : null,
       lead: plan.lead ? { id: plan.lead.lead_id, created: plan.lead.created } : null,
-      alternatives: f.alternatives || [],
+      alternatives: plan.facts.alternatives || [],
       changes,
-      draft: r.draft ? { to: r.draft.to, subject: r.draft.subject, text: r.draft.text, problems: r.draft.problems, inserted, language: r.extraction.language } : null
+      draft: r.draft ? { to: r.draft.to, subject: r.draft.subject, text: r.draft.text, problems: r.draft.problems, inserted: r.draft.values, language: r.extraction.language } : null
     };
   });
   return { snapshot: { date: snap.captured_at, count: snap.listings.length, forSale: snap.listings.filter((x) => x.status === 'FOR SALE').length, underContract: snap.listings.filter((x) => x.status === 'UNDER CONTRACT').length, forRent: snap.listings.filter((x) => x.status === 'FOR RENT').length }, cases };

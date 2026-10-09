@@ -57,7 +57,9 @@
       "stage": "Showing done",
       "created": "2026-09-15",
       "last_contact": "2026-10-01",
-      "source_message_id": "1996e2a04c7d5b11"
+      "source_message_id": "1996e2a04c7d5b11",
+      "thread_id": "1996e2a04c7d5b11",
+      "op_id": ""
     },
     {
       "lead_id": "L-0291",
@@ -68,7 +70,9 @@
       "stage": "Contacted",
       "created": "2026-09-24",
       "last_contact": "2026-09-24",
-      "source_message_id": "1997f0b2c4d81a90"
+      "source_message_id": "1997f0b2c4d81a90",
+      "thread_id": "1997f0b2c4d81a90",
+      "op_id": ""
     },
     {
       "lead_id": "L-0301",
@@ -79,7 +83,9 @@
       "stage": "Applied",
       "created": "2026-10-06",
       "last_contact": "2026-10-06",
-      "source_message_id": "199a8d73e5f01c28"
+      "source_message_id": "199a8d73e5f01c28",
+      "thread_id": "199a8d73e5f01c28",
+      "op_id": ""
     }
   ],
   "Interactions": [
@@ -159,7 +165,9 @@
       "attempts": 0,
       "pending_since": "",
       "updated": "2026-09-24T13:50:00Z",
-      "error": ""
+      "error": "",
+      "sender": "gloria.haines@example.com",
+      "plan_json": ""
     }
   ],
   "headers": {
@@ -170,7 +178,8 @@
       "role",
       "language",
       "first_seen",
-      "last_contact"
+      "last_contact",
+      "op_id"
     ],
     "Leads": [
       "lead_id",
@@ -181,7 +190,9 @@
       "stage",
       "created",
       "last_contact",
-      "source_message_id"
+      "source_message_id",
+      "thread_id",
+      "op_id"
     ],
     "Interactions": [
       "interaction_id",
@@ -190,7 +201,8 @@
       "gmail_message_id",
       "received_at",
       "category",
-      "summary"
+      "summary",
+      "op_id"
     ],
     "Transactions": [
       "txn_id",
@@ -208,18 +220,21 @@
       "proposed_value",
       "source",
       "status",
-      "created"
+      "created",
+      "op_id"
     ],
     "Journal": [
       "key",
       "message_id",
       "thread_id",
+      "sender",
       "state",
       "record",
       "sheet_ops",
       "draft_id",
       "attempts",
       "pending_since",
+      "plan_json",
       "updated",
       "error"
     ],

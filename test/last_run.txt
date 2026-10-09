@@ -10,8 +10,8 @@ PASS [safety] Draft is a reply in the same thread, to the sender only, with the 
 PASS [safety] Hostile email: extra model fields dropped, draft with a foreign address and an invented price blocked, nothing else written
 PASS [safety] Text from an email starting with = is written as text, never as a formula
 PASS [safety] Writes outside the closed list are refused (a contract date, an unknown tab)
-PASS [facts] An amount or an address not in the matched record blocks the draft
-PASS [facts] Rent and deposit are never swapped
+PASS [facts] An amount or an address typed by the model is rejected; the same facts as code-built clauses pass
+PASS [facts] Rent and deposit keep their roles: the rental clause is built from the record (rent $1,695, deposit $2,500)
 PASS [facts] Under contract with no backup field: the draft says the team will confirm, no backup offer
 PASS [facts] FHA on a cash listing with no budget or area: the draft asks for them and suggests no house
 PASS [records] One person selling two houses has two leads
@@ -34,7 +34,27 @@ PASS [install] A thread that already has an unsent draft never gets a second one
 PASS [install] Finished messages never starve new mail: 30 done messages ahead, the new one is handled in the first run
 PASS [rerun] Model failure after the sheet writes, then a rerun: one lead only (seller with no address)
 PASS [rerun] The same seller writing again with no address is attached to the existing seller lead
-PASS [facts] The draft check catches amounts without $, dates, percentages, lowercase addresses and eligibility or acceptance claims
+PASS [facts] Review 1 phrases are rejected in the model text: amounts without $, dates, percentages, lowercase addresses, eligibility or acceptance
 PASS [records] "82nd Ave" resolves to the only avenue; "82nd" alone stays ambiguous
+PASS [C1 identity] An address in the display name ("gloria.haines@example.com" <stranger@example.com>) never reaches C-0388 or L-0291
+PASS [C1 identity] Several or malformed addresses in From go to Review, with no lookup and no draft
+PASS [C1 identity] The canonical address is used for the contact, the journal and the recipient preview
+PASS [C2 reply-to] Two buyers through the same form From (different Reply-To) are not grouped; drafts go to Reply-To with public facts only
+PASS [C3 transactions] An unknown sender proposing November 6 on 4415 Booker T Dr gets no "October 23" and goes to Review
+PASS [C4 provenance] proposed = "2026-12-25" with the November 6 quote: problems reported, no "December 25" anywhere in the draft
+PASS [C5 clauses] The judge's six sentences are rejected in the model's own words
+PASS [C5 clauses] A rejected template sends the message to Review with no draft (FHA typed on the Dartmouth reply)
+PASS [C6 saved plan] Draft failure, retry where the model now says "2026-11-06 ", then November 7: one Review row, first plan value
+PASS [C6 saved plan] Dates are stored as YYYY-MM-DD without spaces
+PASS [C7 provisional lead] "I want to sell my house." then "The address is 15 Lakeview Ct, Brandon." in the same thread: one lead, with the address
+PASS [C7 provisional lead] An address arriving in a different thread does not fill the provisional lead: Review
+PASS [C8 aliases] Reply from the alias sales@ at 11:05: the seller message of 11:00 is not superseded, no contact or draft for the alias
+PASS [C9 reconciliation] Owner reply 12:29:30, new message 12:29:50, failure at 12:30 before any draft: the retry does not end in DONE
+PASS [C9 reconciliation] A message already answered by the owner gets no draft on the first pass
+PASS [C10 retry by id] A failed message four days old, and an archived one, are retried by id
+PASS [C11 flush] Sheet writes are flushed before the lock is released, also when the run fails
+PASS [C12 page claims] Every never / nothing / every / always on the page is tied to a named test
+PASS [C13 no send] No send, reply or forward call anywhere in the repository code
+PASS [C18 page data] Two successive regenerations of site/data.js are identical
 
-38/38 passed
+58/58 passed

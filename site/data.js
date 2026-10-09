@@ -151,11 +151,10 @@ window.EZ = {
    "draft": {
     "to": "tanya.brooks@example.com",
     "subject": "Re: 8303 Bahia still available?",
-    "text": "Hi Tanya,\n\nThanks for writing. 8303 Bahia Ave in Tampa is still listed for sale on our site at $327,900, and the listing shows FHA, VA or conventional financing, or cash. It is a 4 bed, 2 bath home.\n\nWe can look at a weekend showing. Which day and time suit you best? Someone from our team will confirm the time with you.\n\nThe EZ Way Houses team",
+    "text": "Hi Tanya,\n\nThanks for writing. 8303 Bahia Ave, Tampa is listed for sale on our website at $327,900. The listing states these financing terms: FHA, VA or conventional financing, or cash. It is a 4 bed, 2 bath home.\n\nWe can look at a weekend showing. Which day and time suit you best? Someone from our team will confirm the time with you.\n\nThe EZ Way Houses team",
     "problems": [],
     "inserted": [
-     "8303 Bahia Ave",
-     "Tampa",
+     "8303 Bahia Ave, Tampa",
      "$327,900",
      "FHA, VA or conventional financing, or cash"
     ],
@@ -219,7 +218,7 @@ window.EZ = {
     {
      "step": "Alternatives",
      "result": "3 listed with FHA in Tampa at or under $330,000",
-     "why": "budget and area stated in the email"
+     "why": "budget and area written in the email"
     }
    ],
    "listing": {
@@ -336,19 +335,20 @@ window.EZ = {
    "draft": {
     "to": "l.ortega@example.com",
     "subject": "Re: Dartmouth Ave house, FHA?",
-    "text": "Hi Luis,\n\nThank you for your interest in 9513 N Dartmouth Ave. This house is listed on these terms: cash or hard money only, at $264,900. Our team can walk you through what that means for your situation.\n\nSince you mentioned an FHA pre-approval and Tampa, these homes on our site today are listed with FHA, VA or conventional financing within the budget you gave:\n- 4922 S 82nd St, Tampa: $327,900, 4 bed / 2 bath\n- 8303 Bahia Ave, Tampa: $327,900, 4 bed / 2 bath\n- 8309 Tupelo Dr, Tampa: $327,900, 3 bed / 2 bath\n\nWould you like to see one of them, or talk with us about the Dartmouth house first?\n\nThe EZ Way Houses team",
+    "text": "Hi Luis,\n\nThank you for your interest in this house. 9513 N Dartmouth Ave, Tampa is listed for sale on our website at $264,900. The listing states these financing terms: cash or hard money only. Our team can walk you through what that means for your situation.\n\nThese homes on our website are listed with FHA financing, in Tampa, at or under $330,000:\n- 4922 S 82nd St, Tampa: $327,900, 4 bed / 2 bath\n- 8303 Bahia Ave, Tampa: $327,900, 4 bed / 2 bath\n- 8309 Tupelo Dr, Tampa: $327,900, 3 bed / 2 bath\n\nWould you like to see any of them, or talk with us about this house first?\n\nThe EZ Way Houses team",
     "problems": [],
     "inserted": [
-     "9513 N Dartmouth Ave",
-     "Tampa",
+     "9513 N Dartmouth Ave, Tampa",
      "$264,900",
+     "cash or hard money only",
+     "Tampa",
+     "$330,000",
      "4922 S 82nd St",
      "$327,900",
      "8303 Bahia Ave",
      "$327,900",
      "8309 Tupelo Dr",
-     "$327,900",
-     "cash or hard money only"
+     "$327,900"
     ],
     "language": "en"
    }
@@ -454,7 +454,7 @@ window.EZ = {
    "draft": {
     "to": "gloria.haines@example.com",
     "subject": "Re: Selling my house in Brandon",
-    "text": "Hi Gloria,\n\nThanks for following up. We added your notes to the file for 2214 Windward Palms Ct, Brandon: the roof replaced in 2019, and a move-out possible by the end of November.\n\nSomeone from our team will contact you about the next steps toward a cash offer.\n\nThe EZ Way Houses team",
+    "text": "Hi Gloria,\n\nThanks for following up. We added your notes to the file for 2214 Windward Palms Ct, Brandon.\n\nSomeone from our team will contact you about the next steps toward an offer.\n\nThe EZ Way Houses team",
     "problems": [],
     "inserted": [
      "2214 Windward Palms Ct, Brandon"
@@ -607,11 +607,10 @@ window.EZ = {
    "draft": {
     "to": "yrosales@example.com",
     "subject": "Re: Casa en Coral Vine, Sección 8",
-    "text": "Hola Yamilet:\n\nGracias por escribirnos. La publicación de 7705 Coral Vine Ln en Tampa indica una renta mensual de $1,695 y un depósito de $1,695, con 3 habitaciones y 1 baño. La publicación dice «Section 8 Welcome».\n\nNuestro equipo de alquileres le escribirá para revisar su voucher, la solicitud y un horario para ver la casa.\n\nEl equipo de EZ Way Houses",
+    "text": "Hola Yamilet:\n\nGracias por escribirnos. La publicación de 7705 Coral Vine Ln, Tampa en nuestro sitio indica una renta de $1,695 al mes y un depósito de seguridad de $1,695. Tiene 3 habitaciones y 1 baño. La publicación dice «Section 8 Welcome».\n\nNuestro equipo de alquileres le escribirá para revisar su voucher, la solicitud y un horario para ver la casa.\n\nEl equipo de EZ Way Houses",
     "problems": [],
     "inserted": [
-     "7705 Coral Vine Ln",
-     "Tampa",
+     "7705 Coral Vine Ln, Tampa",
      "$1,695",
      "$1,695"
     ],
@@ -671,12 +670,12 @@ window.EZ = {
     {
      "step": "Transaction",
      "result": "T-0117, closing 2026-10-23",
-     "why": "open transaction on EZ-4961"
+     "why": "the only open transaction on EZ-4961, and the sender is its recorded agent"
     },
     {
      "step": "Change",
      "result": "closing date 2026-10-23 kept; 2026-11-06 waits for review",
-     "why": "contract terms are never overwritten by the script"
+     "why": "the current value stays in the transaction; the proposal waits for a person"
     },
     {
      "step": "Interaction",
@@ -765,15 +764,16 @@ window.EZ = {
    "draft": {
     "to": "bkessler@example.com",
     "subject": "Re: Amendment: 4415 Booker T Dr, closing date",
-    "text": "Hi Brian,\n\nThanks, we received the amendment for 4415 Booker T Dr proposing to move closing from October 23 to November 6. Our team will review it and get back to you.\n\nThe EZ Way Houses team",
+    "text": "Hi Brian,\n\nThanks. We received the amendment for 4415 Booker T Dr, Tampa proposing to move the closing date from October 23 to November 6. Our team will review it and get back to you.\n\nThe EZ Way Houses team",
     "problems": [],
     "inserted": [
-     "4415 Booker T Dr",
-     "Tampa",
+     "4415 Booker T Dr, Tampa",
      "$339,900",
+     "FHA, VA or conventional financing, or cash",
+     "4415 Booker T Dr, Tampa",
+     "4415 Booker T Dr, Tampa",
      "October 23",
-     "November 6",
-     "FHA, VA or conventional financing, or cash"
+     "November 6"
     ],
     "language": "en"
    }

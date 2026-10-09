@@ -1,46 +1,59 @@
 /**
  * Adapters.js: the only file that touches Gmail and Sheets.
  *
- * The mailbox adapter can do four things: list messages, create a draft reply in the thread, look for a draft or
- * a reply in a thread, and add a label. There is no send operation anywhere in this repository (R6), and the
- * model never chooses a recipient, an operation or a URL: createDraftReply answers the sender of the message.
+ * The mailbox adapter can do these things only: list or fetch messages, create a draft reply in the thread, look for
+ * a draft or a reply in a thread, add a label. There is no send operation anywhere in this repository (R6), and the
+ * model never chooses a recipient, an operation or a URL: createDraftReply answers the message (its Reply-To, or
+ * its sender).
  */
+
+var BODY_MAX_CHARS = 8000;
 
 function AppsScriptMailbox(config) {
   this.config = config;
-  this.me = Session.getEffectiveUser().getEmail().toLowerCase();
+  this.owners = [Session.getEffectiveUser().getEmail()].concat(GmailApp.getAliases()).map(function (e) { return String(e).toLowerCase(); });
 }
-/** Every incoming message received since sinceMs, all pages of the search. The pipeline removes finished ones. */
+/** The mailbox owner and every send-as alias: their messages are never treated as incoming (C8). */
+AppsScriptMailbox.prototype.ownerAddresses = function () { return this.owners.slice(); };
+AppsScriptMailbox.prototype.toMsg_ = function (m) {
+  // Attachments are not read; the body is cut at BODY_MAX_CHARS characters.
+  return { id: m.getId(), threadId: m.getThread().getId(), from: m.getFrom(), replyTo: m.getReplyTo(), to: m.getTo(), subject: m.getSubject(), date: m.getDate().toISOString(), body: m.getPlainBody().slice(0, BODY_MAX_CHARS) };
+};
+/** Every message received since sinceMs, all pages of the search. The pipeline removes owner and finished ones. */
 AppsScriptMailbox.prototype.listCandidates = function (query, sinceMs) {
-  var me = this.me, out = [], q = query + ' after:' + Math.floor(sinceMs / 1000), page = 50;
+  var self = this, out = [], q = query + ' after:' + Math.floor(sinceMs / 1000), page = 50;
   for (var start = 0; start < 2000; start += page) {
     var threads = GmailApp.search(q, start, page);
     threads.forEach(function (thread) {
       thread.getMessages().forEach(function (m) {
         if (m.isDraft() || m.isInTrash()) return;
         if (m.getDate().getTime() < sinceMs) return; // older messages of a recent thread are never picked up
-        if (normEmail(m.getFrom()) === me) return;
-        out.push({ id: m.getId(), threadId: thread.getId(), from: m.getFrom(), to: m.getTo(), subject: m.getSubject(), date: m.getDate().toISOString(), body: m.getPlainBody().slice(0, 8000) });
+        out.push(self.toMsg_(m));
       });
     });
     if (threads.length < page) break;
   }
   return out;
 };
+/** Fetches one message by id, for retries outside the search window (C10). */
+AppsScriptMailbox.prototype.getMessage = function (id) {
+  try { var m = GmailApp.getMessageById(id); return m ? this.toMsg_(m) : null; } catch (e) { return null; }
+};
+/** Gmail addresses the draft to the Reply-To of the message when there is one, otherwise to its sender. */
 AppsScriptMailbox.prototype.createDraftReply = function (messageId, body) {
   return GmailApp.getMessageById(messageId).createDraftReply(body).getId();
 };
 AppsScriptMailbox.prototype.findDraftInThread = function (threadId, sinceMs) {
   var hit = GmailApp.getDrafts().filter(function (d) {
     var m = d.getMessage();
-    return m.getThread().getId() === threadId && m.getDate().getTime() >= sinceMs - 60000;
+    return m.getThread().getId() === threadId && m.getDate().getTime() >= sinceMs;
   })[0];
   return hit ? hit.getId() : null;
 };
-AppsScriptMailbox.prototype.threadHasReplyAfter = function (threadId, sinceMs) {
-  var me = this.me;
+/** True only for a message sent by the owner or an alias strictly after afterMs (no tolerance, C9). */
+AppsScriptMailbox.prototype.threadHasReplyAfter = function (threadId, afterMs, owners) {
   return GmailApp.getThreadById(threadId).getMessages().some(function (m) {
-    return !m.isDraft() && normEmail(m.getFrom()) === me && m.getDate().getTime() >= sinceMs - 60000;
+    return !m.isDraft() && owners.indexOf(normEmail(m.getFrom())) >= 0 && m.getDate().getTime() > afterMs;
   });
 };
 AppsScriptMailbox.prototype.addLabel = function (threadId, name) {
@@ -85,6 +98,9 @@ AppsScriptSheets.prototype.updateRow = function (tab, keyField, keyValue, patch)
     if (c >= 0) sh.getRange(idx + 2, c + 1).setValue(literal(patch[k]));
   });
 };
+
+/** Pending spreadsheet changes are written before the script lock is released (C11). */
+AppsScriptSheets.prototype.flush = function () { SpreadsheetApp.flush(); };
 
 function ScriptLock() { this.lock = LockService.getScriptLock(); }
 ScriptLock.prototype.tryLock = function (ms) { return this.lock.tryLock(ms); };

@@ -27,6 +27,7 @@ class FakeSheets {
     if (typeof v === 'string' && v.startsWith('=')) { this.formulas.push({ tab, v }); return { formula: v }; }
     return v;
   }
+  flush() { (this.events = this.events || []).push('flush'); if (this.onFlush) this.onFlush(); }
   readTable(tab) {
     const head = this.headers[tab];
     return this.cells[tab].map((r) => Object.fromEntries(head.map((h, i) => [h, r[i] && r[i].formula ? '#FORMULA' : r[i]])));
@@ -43,29 +44,41 @@ class FakeSheets {
   }
 }
 
+const angle = (h) => { const m = String(h || '').match(/<([^>]+)>/); return (m ? m[1] : String(h || '')).trim().toLowerCase(); };
+
+/** Gmail stand-in. Like Gmail, createDraftReply answers the Reply-To when there is one, otherwise the From. */
 class FakeMailbox {
-  constructor(messages) {
+  constructor(messages, owners) {
     this.messages = messages;
+    this.owners = owners || ['inbox@ezway.example'];
     this.drafts = [];
     this.replies = [];
     this.labels = {};
     this.seq = 0;
     this.crashAfterDraft = false;
+    this.failBeforeDraft = false;
+    this.hidden = new Set(); // archived: not returned by the search, still fetchable by id
     this.clockMs = () => Date.parse('2026-10-09T12:30:00Z');
   }
-  listCandidates(query, sinceMs) { return this.messages.slice(); }
+  ownerAddresses() { return this.owners.slice(); }
+  listCandidates(query, sinceMs) { return this.messages.filter((m) => !this.hidden.has(m.id)); }
+  getMessage(id) { return this.messages.find((m) => m.id === id) || null; }
   createDraftReply(messageId, body) {
+    if (this.failBeforeDraft) { this.failBeforeDraft = false; throw new Error('simulated failure before the draft was created'); }
     const m = this.messages.find((x) => x.id === messageId);
     const id = 'r-' + String(++this.seq).padStart(4, '0');
-    this.drafts.push({ id, messageId, threadId: m.threadId, to: (m.from.match(/<([^>]+)>/) || [, m.from])[1].toLowerCase(), subject: 'Re: ' + m.subject.replace(/^re:\s*/i, ''), body, createdMs: this.clockMs() });
+    this.drafts.push({ id, messageId, threadId: m.threadId, to: angle(m.replyTo || m.from), subject: 'Re: ' + m.subject.replace(/^re:\s*/i, ''), body, createdMs: this.clockMs() });
     if (this.crashAfterDraft) { this.crashAfterDraft = false; throw new Error('simulated stop after the draft was created'); }
     return id;
   }
   findDraftInThread(threadId, sinceMs) {
-    const d = this.drafts.find((x) => x.threadId === threadId && !x.sent && x.createdMs >= sinceMs - 60000);
+    const d = this.drafts.find((x) => x.threadId === threadId && !x.sent && x.createdMs >= sinceMs);
     return d ? d.id : null;
   }
-  threadHasReplyAfter(threadId, sinceMs) { return this.replies.some((r) => r.threadId === threadId && r.ms >= sinceMs - 60000); }
+  threadHasReplyAfter(threadId, afterMs, owners) {
+    const fromOwner = this.messages.some((m) => m.threadId === threadId && owners.includes(angle(m.from)) && Date.parse(m.date) > afterMs);
+    return fromOwner || this.replies.some((r) => r.threadId === threadId && r.ms > afterMs);
+  }
   addLabel(threadId, name) { (this.labels[threadId] = this.labels[threadId] || new Set()).add(name); }
   // used by tests only: a person sends a draft from Gmail
   personSends(draftId) { const d = this.drafts.find((x) => x.id === draftId); d.sent = true; this.replies.push({ threadId: d.threadId, ms: this.clockMs() }); }
@@ -73,8 +86,8 @@ class FakeMailbox {
 
 class FakeLock {
   constructor(shared) { this.shared = shared || { held: false }; }
-  tryLock() { if (this.shared.held) return false; this.shared.held = true; return true; }
-  releaseLock() { this.shared.held = false; }
+  tryLock() { if (this.shared.held) return false; this.shared.held = true; (this.shared.events = this.shared.events || []).push('lock'); return true; }
+  releaseLock() { this.shared.held = false; (this.shared.events = this.shared.events || []).push('release'); }
 }
 
 const fixedClock = (iso) => ({ now: () => new Date(iso) });
@@ -96,14 +109,14 @@ function makeWorld(messages, opts = {}) {
   const tables = JSON.parse(JSON.stringify({ ...ops, Listings: snap.listings.concat(opts.extraListings || []) }));
   const sheets = new FakeSheets(tables, ops.headers);
   sheets.literal = G.literal;
-  const mailbox = new FakeMailbox(messages);
+  const mailbox = new FakeMailbox(messages, opts.owners);
   const outputs = { ...readJson('fixtures/model_outputs.json'), ...(opts.outputs || {}) };
   const model = new G.FixtureModel(outputs);
   const deps = {
     config: CONFIG, mailboxId: 'inbox@ezway.example', mailbox, sheets, journal: new G.SheetJournal(sheets),
-    model, lock: new FakeLock(opts.sharedLock), clock: fixedClock(opts.now || '2026-10-09T12:30:00Z')
+    model, lock: new FakeLock(opts.sharedLock || (opts.lockState = { held: false })), clock: fixedClock(opts.now || '2026-10-09T12:30:00Z')
   };
-  return { G, deps, sheets, mailbox, tables };
+  return { G, deps, sheets, mailbox, tables, lockState: deps.lock.shared };
 }
 
 module.exports = { loadSources, FakeSheets, FakeMailbox, FakeLock, makeWorld, readJson, CONFIG, ROOT };

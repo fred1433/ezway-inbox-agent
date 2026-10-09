@@ -50,12 +50,12 @@ var EXTRACT_INSTRUCTIONS = [
 
 var DRAFT_INSTRUCTIONS = [
   'Write the body of a reply email for EZ Way Houses. Return JSON {"template": "..."}.',
-  'Write in the language given. Keep it short, warm and plain.',
-  'Never type an amount, an address, a date, a phone number, a link or financing terms yourself. Use only these slots, which the code fills from the record:',
-  '{{first_name}} {{address}} {{city}} {{price}} {{financing_listed}} {{rent}} {{deposit}} {{beds}} {{baths}} {{alternatives}} {{seller_property}} {{current_value}} {{proposed_value}} {{office_phone}} {{contractor_form_url}} {{signature}}',
-  'Follow next_action exactly. Never say a buyer is approved, eligible or ineligible; never say an application or voucher is accepted; never promise a price, an offer or a date.',
-  'For an under-contract house, mention a backup offer only when next_action is offer_backup; otherwise say the team will confirm.',
-  'End with {{signature}}.'
+  'The facts are written by the code as complete sentences ("clauses"). Insert a clause by its slot, e.g. {{sale_terms}}.',
+  'Start with {{greeting}} and end with {{signature}}. Use only the clauses listed as available.',
+  'Your own words only link the clauses: no digit, no number in words, no date, day or month, no amount or money word,',
+  'no rent period, no address, street or city, no financing term (FHA, VA, conventional, cash, hard money, Section 8).',
+  'Never say a buyer is approved, eligible or qualifies; never say an application or voucher is accepted; never promise',
+  'a price, an offer or a date. Write in the language given. Keep it short, warm and plain.'
 ].join('\n');
 
 function GeminiModel(config) {
@@ -88,13 +88,8 @@ GeminiModel.prototype.extract = function (msg) {
   var input = 'From: ' + msg.from + '\nSubject: ' + msg.subject + '\nDate: ' + msg.date + '\n\n' + msg.body;
   return this.call_(EXTRACT_INSTRUCTIONS, input, EXTRACT_SCHEMA);
 };
-GeminiModel.prototype.draft = function (msg, extraction, facts, nextAction) {
-  var visible = {
-    language: extraction.language, next_action: nextAction, status: facts.status,
-    listing: facts.address ? { address: '{{address}}', city: '{{city}}', price: facts.price ? '{{price}}' : null, financing: facts.financing_listed ? '{{financing_listed}}' : null, rent: facts.rent ? '{{rent}}' : null, deposit: facts.deposit ? '{{deposit}}' : null, section8_welcome: facts.section8_welcome } : null,
-    alternatives: facts.alternatives.length ? '{{alternatives}}' : null,
-    sender_details: extraction.details
-  };
-  var input = 'Context (slots only, no raw values):\n' + JSON.stringify(visible) + '\n\nEmail:\nSubject: ' + msg.subject + '\n\n' + msg.body;
+GeminiModel.prototype.draft = function (msg, extraction, facts, nextAction, clauses) {
+  var context = { language: extraction.language, next_action: nextAction, available_clauses: clauses, sender_details: extraction.details };
+  var input = 'Context:\n' + JSON.stringify(context) + '\n\nEmail:\nSubject: ' + msg.subject + '\n\n' + msg.body;
   return this.call_(DRAFT_INSTRUCTIONS, input, { type: 'object', properties: { template: { type: 'string' } }, required: ['template'] });
 };
