@@ -53,6 +53,7 @@ function matchAddress(mention, records, addressOf, knownCities, noun) {
     if (m.number && a.number !== m.number) return false;
     if (!m.name.every(function (w) { return a.name.indexOf(w) >= 0; })) return false;
     if (m.dirs.length && a.dirs.length && m.dirs.join() !== a.dirs.join()) return false;
+    if (m.suffix && a.suffix && m.suffix !== a.suffix) return false;
     if (m.unit && a.unit && m.unit !== a.unit) return false;
     if (m.city && a.city && m.city !== a.city) return false;
     return true;
@@ -60,6 +61,7 @@ function matchAddress(mention, records, addressOf, knownCities, noun) {
   var parts = [];
   if (m.number) parts.push('house number ' + m.number);
   parts.push('street "' + m.name.join(' ') + '"');
+  if (m.suffix) parts.push('street type "' + m.suffix + '"');
   if (m.dirs.length) parts.push('direction ' + m.dirs.join(' ').toUpperCase());
   if (m.unit) parts.push('unit ' + m.unit.toUpperCase());
   if (m.city) parts.push('city ' + m.city);
@@ -154,7 +156,8 @@ function renderDraft(template, facts, ctx) {
 var BANNED = [
   /\bineligible\b/i, /\bnot eligible\b/i, /\bdoes not qualify\b/i, /\bno califica\b/i,
   /\byou(?:'re| are) approved\b/i, /\bapproved for this\b/i, /\bqueda aprobad[oa]\b/i,
-  /\bguarantee/i, /\bgarantiza/i, /\bis accepted\b/i, /\bfue aceptad[oa]\b/i
+  /\bguarantee/i, /\bgarantiza/i, /\baccepted\b/i, /\bacept(?:a|amos|an|ado|ada|ados|adas)\b/i,
+  /\bqualif(?:y|ies|ied)\b/i, /\bcalific(?:a|an|ado|ada)\b/i, /\bapproved\b/i, /\baprobad[oa]s?\b/i, /\beligible\b/i, /\belegible\b/i
 ];
 
 /**
@@ -162,7 +165,7 @@ var BANNED = [
  * every amount and street address must exist in the facts, rent and deposit are never swapped,
  * no email address, phone or URL other than the allowed ones, no eligibility or approval claims.
  */
-function validateDraft(text, facts, config) {
+function validateDraft(text, facts, config, sourceText) {
   var problems = [];
   var amounts = [facts.price, facts.rent, facts.deposit].filter(Boolean).map(Number);
   (facts.alternatives || []).forEach(function (a) { amounts.push(Number(a.price)); });
@@ -174,15 +177,29 @@ function validateDraft(text, facts, config) {
   while ((mm = rentRe.exec(text))) if (Number(mm[2].replace(/,/g, '')) !== Number(facts.rent)) problems.push('rent stated as $' + mm[2] + ' but the record says ' + money(facts.rent));
   while ((mm = depRe.exec(text))) if (Number(mm[2].replace(/,/g, '')) !== Number(facts.deposit)) problems.push('deposit stated as $' + mm[2] + ' but the record says ' + money(facts.deposit));
 
+  // Every number in the draft (amounts with or without $, dates, percentages, house numbers) must come from the
+  // matched record or from the email being answered.
   var allowedAddr = [facts.address, facts.seller_property].concat((facts.alternatives || []).map(function (a) { return a.address; })).concat(facts.extra_addresses || []).filter(Boolean);
+  var allowedText = allowedAddr.concat([facts.city, facts.current_value, facts.proposed_value, facts.beds, facts.baths, facts.price, facts.rent, facts.deposit])
+    .concat((facts.alternatives || []).map(function (a) { return [a.price, a.beds, a.baths].join(' '); }))
+    .concat([config.OFFICE_PHONE]).filter(function (x) { return x !== null && x !== undefined; }).join(' ');
+  function numbers(s) { return (String(s || '').replace(/(\d),(?=\d{3}\b)/g, '$1').match(/\d+(?:\.\d+)?/g) || []); }
+  var allowedNums = {};
+  numbers(allowedText).concat(numbers(sourceText)).forEach(function (n) { allowedNums[String(Number(n))] = true; });
+  var scan = text.replace(/https?:\/\/[^\s)]+/gi, ' ');
+  numbers(scan).forEach(function (n) {
+    if (!allowedNums[String(Number(n))]) problems.push('number ' + n + ' is not in the matched record or the email');
+  });
+  (scan.match(/\d+(?:\.\d+)?\s?%/g) || []).forEach(function (pc) {
+    if (String(sourceText || '').replace(/\s/g, '').indexOf(pc.replace(/\s/g, '')) < 0) problems.push('percentage ' + pc + ' is not in the email');
+  });
+
   var allowedParsed = allowedAddr.map(function (a) { return parseAddress(a); });
-  var addrRe = /\b(\d{2,6})\s+((?:[NSEW]\.?\s+)?[A-Z0-9][A-Za-z0-9]*(?:\s+[A-Z][a-z]+)?)/g;
-  while ((mm = addrRe.exec(text))) {
+  var addrRe = /\b(\d{1,6})\s+((?:[nsew]\.?\s+)?[a-z0-9]+(?:\s+[a-z]+){0,2}?)\s+(st|street|ave|avenue|dr|drive|ln|lane|cir|circle|ct|court|rd|road|blvd|boulevard|way|pl|place|ter|terrace|trl|trail)\b/gi;
+  while ((mm = addrRe.exec(scan))) {
     var p = parseAddress(mm[0]);
-    if (!p.name.length || /^\d{4}$/.test(mm[1]) && /^(and|to|at|in|or)$/i.test(p.name[0])) continue;
-    var ok = allowedParsed.some(function (a) { return a.number === p.number && p.name.every(function (w) { return a.name.indexOf(w) >= 0 || a.suffix === SUFFIXES[w]; }); });
-    var looksLikeStreet = /[A-Z]/.test(mm[2].charAt(0)) && !/^(bed|bath|day|days|minutes|am|pm)$/i.test(p.name[0]);
-    if (!ok && looksLikeStreet && !/^20\d\d$/.test(mm[1])) problems.push('address "' + mm[0].trim() + '" is not in the matched record');
+    var ok = allowedParsed.some(function (a) { return a.number === p.number && p.name.every(function (w) { return a.name.indexOf(w) >= 0; }) && (!p.suffix || !a.suffix || p.suffix === a.suffix); });
+    if (!ok) problems.push('address "' + mm[0].trim() + '" is not in the matched record');
   }
   (text.match(/[^\s<>()]+@[^\s<>()]+\.[a-z]{2,}/gi) || []).forEach(function (e) { problems.push('email address ' + e + ' in the draft'); });
   (text.match(/https?:\/\/[^\s)]+/gi) || []).forEach(function (u) {

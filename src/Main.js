@@ -16,6 +16,8 @@ function loadConfig_() {
     GEMINI_MODEL: p.GEMINI_MODEL || 'gemini-3.8-flash',
     MAX_PER_RUN: Number(p.MAX_PER_RUN || 10),
     MAX_RUN_MS: 4 * 60 * 1000,
+    LOOKBACK_MS: 3 * 24 * 3600 * 1000,
+    INSTALLED_AT: p.INSTALLED_AT || '',   // set by installTrigger: nothing received before it is ever processed
     TIMEZONE: 'America/New_York',
     // The label is for people only: progress is read from the Journal tab, so a new message in an
     // already labelled thread is still picked up.
@@ -48,8 +50,10 @@ function processInbox() {
   console.log(JSON.stringify({ locked: out.locked, processed: out.processed.length, errors: out.processed.filter(function (r) { return r.error; }).length }));
 }
 
-/** Installs a periodic trigger (every 10 minutes). Run once by hand from the editor. */
+/** Records the start time (INSTALLED_AT) and installs a periodic trigger (every 10 minutes). Run once by hand. */
 function installTrigger() {
+  var props = PropertiesService.getScriptProperties();
+  if (!props.getProperty('INSTALLED_AT')) props.setProperty('INSTALLED_AT', new Date().toISOString());
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'processInbox') ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('processInbox').timeBased().everyMinutes(10).create();
 }

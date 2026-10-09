@@ -80,6 +80,10 @@ window.EZ = {
     "captured": "2026-10-09",
     "photo": "img/5000.jpg"
    },
+   "lead": {
+    "id": "L-0302",
+    "created": "2026-10-09"
+   },
    "alternatives": [],
    "changes": [
     {
@@ -147,7 +151,7 @@ window.EZ = {
    "draft": {
     "to": "tanya.brooks@example.com",
     "subject": "Re: 8303 Bahia still available?",
-    "text": "Hi Tanya,\n\nThanks for writing. 8303 Bahia Ave in Tampa is still listed for sale on our site at $327,900, and the listing shows FHA, VA or conventional financing, or cash. It is a 4 bed, 2 bath home.\n\nA weekend showing can work. Which day and time suit you best? Someone from our team will confirm the time with you.\n\nThe EZ Way Houses team",
+    "text": "Hi Tanya,\n\nThanks for writing. 8303 Bahia Ave in Tampa is still listed for sale on our site at $327,900, and the listing shows FHA, VA or conventional financing, or cash. It is a 4 bed, 2 bath home.\n\nWe can look at a weekend showing. Which day and time suit you best? Someone from our team will confirm the time with you.\n\nThe EZ Way Houses team",
     "problems": [],
     "inserted": [
      "8303 Bahia Ave",
@@ -200,7 +204,7 @@ window.EZ = {
     {
      "step": "Listing",
      "result": "9513 N Dartmouth Ave, Tampa (for sale)",
-     "why": "house number 9513 and street \"dartmouth\" and direction N matched 1 of 21 listings"
+     "why": "house number 9513 and street \"dartmouth\" and street type \"ave\" and direction N matched 1 of 21 listings"
     },
     {
      "step": "Lead",
@@ -235,6 +239,10 @@ window.EZ = {
     "url": "https://www.ezwayhouses.com/Home/ViewDetails?PropertyID=5009",
     "captured": "2026-10-09",
     "photo": "img/5009.jpg"
+   },
+   "lead": {
+    "id": "L-0303",
+    "created": "2026-10-09"
    },
    "alternatives": [
     {
@@ -386,7 +394,7 @@ window.EZ = {
     {
      "step": "Lead",
      "result": "Existing seller lead L-0291",
-     "why": "house number 2214 and street \"windward palms\" matched 1 of 1 seller lead of this contact"
+     "why": "house number 2214 and street \"windward palms\" and street type \"ct\" matched 1 of 1 seller lead of this contact"
     },
     {
      "step": "Interaction",
@@ -395,6 +403,10 @@ window.EZ = {
     }
    ],
    "listing": null,
+   "lead": {
+    "id": "L-0291",
+    "created": "2026-09-24"
+   },
    "alternatives": [],
    "changes": [
     {
@@ -493,7 +505,7 @@ window.EZ = {
     {
      "step": "Listing",
      "result": "7705 Coral Vine Ln, Tampa (for rent)",
-     "why": "house number 7705 and street \"coral vine\" matched 1 of 5 rental listings"
+     "why": "house number 7705 and street \"coral vine\" and street type \"ln\" matched 1 of 5 rental listings"
     },
     {
      "step": "Lead",
@@ -523,6 +535,10 @@ window.EZ = {
     "url": "https://www.ezwayhouses.com/Home/ViewDetails?PropertyID=4828",
     "captured": "2026-10-09",
     "photo": "img/4828.jpg"
+   },
+   "lead": {
+    "id": "L-0304",
+    "created": "2026-10-09"
    },
    "alternatives": [],
    "changes": [
@@ -650,7 +666,7 @@ window.EZ = {
     {
      "step": "Listing",
      "result": "4415 Booker T Dr, Tampa (under contract)",
-     "why": "house number 4415 and street \"booker t\" matched 1 of 21 listings"
+     "why": "house number 4415 and street \"booker t\" and street type \"dr\" matched 1 of 21 listings"
     },
     {
      "step": "Transaction",
@@ -686,6 +702,7 @@ window.EZ = {
     "captured": "2026-10-09",
     "photo": "img/4961.jpg"
    },
+   "lead": null,
    "alternatives": [],
    "changes": [
     {

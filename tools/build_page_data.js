@@ -42,6 +42,7 @@ function build() {
       mentions: r.extraction.property_mentions.concat(r.extraction.seller_property ? [r.extraction.seller_property] : []),
       trace: plan.trace,
       listing: l ? { id: l.listing_id, address: l.address, city: l.city, zip: l.zip, status: l.status, type: l.type, financing: l.financing_listed, price: l.price, rent: l.rent, deposit: l.deposit, beds: l.beds, baths: l.baths, section8: l.section8_welcome, url: l.source_url, captured: l.captured_at, photo: PHOTOS[l.listing_id] || null } : null,
+      lead: plan.lead ? { id: plan.lead.lead_id, created: plan.lead.created } : null,
       alternatives: f.alternatives || [],
       changes,
       draft: r.draft ? { to: r.draft.to, subject: r.draft.subject, text: r.draft.text, problems: r.draft.problems, inserted, language: r.extraction.language } : null

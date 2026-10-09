@@ -10,16 +10,22 @@ function AppsScriptMailbox(config) {
   this.config = config;
   this.me = Session.getEffectiveUser().getEmail().toLowerCase();
 }
-AppsScriptMailbox.prototype.listCandidates = function (query, max) {
-  var me = this.me, out = [];
-  GmailApp.search(query, 0, 50).forEach(function (thread) {
-    thread.getMessages().forEach(function (m) {
-      if (m.isDraft() || m.isInTrash()) return;
-      if (normEmail(m.getFrom()) === me) return;
-      out.push({ id: m.getId(), threadId: thread.getId(), from: m.getFrom(), to: m.getTo(), subject: m.getSubject(), date: m.getDate().toISOString(), body: m.getPlainBody().slice(0, 8000) });
+/** Every incoming message received since sinceMs, all pages of the search. The pipeline removes finished ones. */
+AppsScriptMailbox.prototype.listCandidates = function (query, sinceMs) {
+  var me = this.me, out = [], q = query + ' after:' + Math.floor(sinceMs / 1000), page = 50;
+  for (var start = 0; start < 2000; start += page) {
+    var threads = GmailApp.search(q, start, page);
+    threads.forEach(function (thread) {
+      thread.getMessages().forEach(function (m) {
+        if (m.isDraft() || m.isInTrash()) return;
+        if (m.getDate().getTime() < sinceMs) return; // older messages of a recent thread are never picked up
+        if (normEmail(m.getFrom()) === me) return;
+        out.push({ id: m.getId(), threadId: thread.getId(), from: m.getFrom(), to: m.getTo(), subject: m.getSubject(), date: m.getDate().toISOString(), body: m.getPlainBody().slice(0, 8000) });
+      });
     });
-  });
-  return out.slice(0, max);
+    if (threads.length < page) break;
+  }
+  return out;
 };
 AppsScriptMailbox.prototype.createDraftReply = function (messageId, body) {
   return GmailApp.getMessageById(messageId).createDraftReply(body).getId();

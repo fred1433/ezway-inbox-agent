@@ -53,7 +53,7 @@ class FakeMailbox {
     this.crashAfterDraft = false;
     this.clockMs = () => Date.parse('2026-10-09T12:30:00Z');
   }
-  listCandidates(query, max) { return this.messages.slice(0, max); }
+  listCandidates(query, sinceMs) { return this.messages.slice(); }
   createDraftReply(messageId, body) {
     const m = this.messages.find((x) => x.id === messageId);
     const id = 'r-' + String(++this.seq).padStart(4, '0');

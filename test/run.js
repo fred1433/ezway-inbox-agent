@@ -253,6 +253,94 @@ test('runs', 'A failing message is recorded in the journal and goes to review af
   assert.ok(/no recorded output/.test(j.error));
 });
 
+// ---------- review of 2026-10-09: blocking points
+const mk = (id, threadId, date, from, body, subject) => ({ id, threadId, date, from, to: 'info@ezwayhouses.com', subject: subject || 'Selling my house', body });
+const sellerOut = (name, addr) => ({ extract: { category: 'seller_lead', language: 'en', sender_name: name, property_mentions: [], financing: 'unknown', seller_property: addr, summary: 'Wants to sell.', confidence: 'high' }, draft: 'Hi {{first_name}},\n\nThanks, someone from our team will contact you.\n\n{{signature}}' });
+
+test('install', 'Fresh install: an old message in a recent thread is never processed, the thread gets one draft', () => {
+  const old = mk('g-old', 'th-1', '2026-09-24T13:41:00Z', 'Ray Cole <ray@example.com>', 'I want to sell my house.');
+  const neu = mk('g-new', 'th-1', '2026-10-09T11:00:00Z', 'Ray Cole <ray@example.com>', 'Following up.', 'Re: Selling my house');
+  const w = makeWorld([old, neu], { outputs: { 'g-old': sellerOut('Ray Cole', null), 'g-new': sellerOut('Ray Cole', null) } });
+  w.deps.config = { ...w.deps.config, INSTALLED_AT: '2026-10-09T08:00:00Z' };
+  const run = w.G.runBatch(w.deps);
+  assert.strictEqual(run.processed.length, 1);
+  assert.strictEqual(w.mailbox.drafts.length, 1);
+  assert.strictEqual(w.mailbox.drafts[0].messageId, 'g-new');
+  assert.strictEqual(w.deps.journal.get('inbox@ezway.example:g-old'), null);
+});
+test('install', 'Two unprocessed messages in one thread: only the latest gets a draft, the earlier one is still logged', () => {
+  const a = mk('h-1', 'th-2', '2026-10-09T10:00:00Z', 'Ray Cole <ray@example.com>', 'I want to sell my house.');
+  const b = mk('h-2', 'th-2', '2026-10-09T11:00:00Z', 'Ray Cole <ray@example.com>', 'Also, it has a pool.', 'Re: Selling my house');
+  const w = makeWorld([b, a], { outputs: { 'h-1': sellerOut('Ray Cole', null), 'h-2': sellerOut('Ray Cole', null) } });
+  w.G.runBatch(w.deps);
+  assert.strictEqual(w.mailbox.drafts.length, 1);
+  assert.strictEqual(w.mailbox.drafts[0].messageId, 'h-2');
+  assert.strictEqual(tab(w, 'Interactions').filter((x) => x.gmail_message_id === 'h-1' || x.gmail_message_id === 'h-2').length, 2);
+  assert.strictEqual(tab(w, 'Leads').filter((l) => l.contact_id === tab(w, 'Contacts').find((c) => c.email === 'ray@example.com').contact_id).length, 1);
+});
+test('install', 'A thread that already has an unsent draft never gets a second one', () => {
+  const a = mk('k-1', 'th-3', '2026-10-09T10:00:00Z', 'Ray Cole <ray@example.com>', 'I want to sell my house.');
+  const b = mk('k-2', 'th-3', '2026-10-09T12:00:00Z', 'Ray Cole <ray@example.com>', 'Any news?', 'Re: Selling my house');
+  const w = makeWorld([a], { outputs: { 'k-1': sellerOut('Ray Cole', null), 'k-2': sellerOut('Ray Cole', null) } });
+  w.G.runBatch(w.deps);
+  w.mailbox.messages.push(b);
+  const r = w.G.runBatch(w.deps).processed[0];
+  assert.strictEqual(r.status, 'Draft already waiting in thread');
+  assert.strictEqual(w.mailbox.drafts.length, 1);
+  assert.ok(/already has an unsent draft/.test(tab(w, 'Review').at(-1).source));
+});
+test('install', 'Finished messages never starve new mail: 30 done messages ahead, the new one is handled in the first run', () => {
+  const done = Array.from({ length: 30 }, (_, i) => mk('d-' + i, 'td-' + i, '2026-10-09T09:' + String(10 + i).padStart(2, '0') + ':00Z', 'X <x' + i + '@example.com>', 'old'));
+  const yam = { ...V['199c4e41b8d27a04'] };
+  const w = makeWorld(done.concat([yam]));
+  done.forEach((m) => w.deps.journal.put('inbox@ezway.example:' + m.id, { message_id: m.id, thread_id: m.threadId, state: 'DONE' }));
+  const run = w.G.runBatch(w.deps);
+  assert.strictEqual(run.processed.length, 1);
+  assert.strictEqual(run.processed[0].key, 'inbox@ezway.example:' + yam.id);
+  assert.strictEqual(w.mailbox.drafts.length, 1);
+});
+test('rerun', 'Model failure after the sheet writes, then a rerun: one lead only (seller with no address)', () => {
+  const m = mk('f-1', 'tf-1', '2026-10-09T11:00:00Z', 'Ray Cole <ray@example.com>', 'I want to sell my house, no address yet.');
+  const w = makeWorld([m], { outputs: { 'f-1': sellerOut('Ray Cole', null) } });
+  const realDraft = w.deps.model.draft.bind(w.deps.model);
+  let calls = 0;
+  w.deps.model.draft = (...a) => { if (calls++ === 0) throw new Error('Gemini HTTP 503'); return realDraft(...a); };
+  const first = w.G.runBatch(w.deps).processed[0];
+  assert.ok(/503/.test(first.error));
+  w.G.runBatch(w.deps);
+  const cid = tab(w, 'Contacts').find((c) => c.email === 'ray@example.com').contact_id;
+  assert.strictEqual(tab(w, 'Leads').filter((l) => l.contact_id === cid).length, 1);
+  assert.strictEqual(tab(w, 'Contacts').filter((c) => c.email === 'ray@example.com').length, 1);
+  assert.strictEqual(tab(w, 'Interactions').filter((x) => x.gmail_message_id === 'f-1').length, 1);
+  assert.strictEqual(w.mailbox.drafts.length, 1);
+});
+test('rerun', 'The same seller writing again with no address is attached to the existing seller lead', () => {
+  const a = mk('s-1', 'ts-1', '2026-10-09T10:00:00Z', 'Ray Cole <ray@example.com>', 'I want to sell my house.');
+  const b = mk('s-2', 'ts-2', '2026-10-09T11:00:00Z', 'Ray Cole <ray@example.com>', 'Me again.');
+  const w = makeWorld([a, b], { outputs: { 's-1': sellerOut('Ray Cole', null), 's-2': sellerOut('Ray Cole', null) } });
+  w.G.processMessage(a, w.deps);
+  const r = w.G.processMessage(b, w.deps);
+  assert.strictEqual(r.status, 'Existing lead found');
+  const cid = tab(w, 'Contacts').find((c) => c.email === 'ray@example.com').contact_id;
+  assert.strictEqual(tab(w, 'Leads').filter((l) => l.contact_id === cid).length, 1);
+});
+test('facts', 'The draft check catches amounts without $, dates, percentages, lowercase addresses and eligibility or acceptance claims', () => {
+  const w = makeWorld([]);
+  const facts = w.G.buildFacts(w.tables.Listings.find((l) => l.listing_id === 'EZ-5000'));
+  const src = 'Is 8303 Bahia still available?';
+  const bad = ['It is 299,000 dollars.', 'The price could drop to 315000.', 'We can close by October 30 with 3% down.', 'You may like 8309 tupelo dr too.', 'You qualify for this one.', 'Aceptamos su voucher de Sección 8.', 'Your application is approved.'];
+  bad.forEach((t) => assert.ok(w.G.validateDraft(t, facts, w.deps.config, src).length > 0, 'not caught: ' + t));
+  assert.strictEqual(w.G.validateDraft('8303 Bahia Ave in Tampa is listed at $327,900. It is a 4 bed, 2 bath home.', facts, w.deps.config, src).length, 0);
+});
+test('records', '"82nd Ave" resolves to the only avenue; "82nd" alone stays ambiguous', () => {
+  const w = makeWorld([]);
+  const L = w.tables.Listings, cities = L.map((l) => l.city);
+  const addr = (l) => l.address + ' ' + l.city;
+  const r = w.G.matchAddress('the house on 82nd Ave', L, addr, cities);
+  assert.strictEqual(r.status, 'unique'); assert.strictEqual(r.record.listing_id, 'EZ-4973');
+  assert.strictEqual(w.G.matchAddress('82nd', L, addr, cities).status, 'ambiguous');
+});
+
 const failed = results.filter((r) => !r.ok);
 for (const r of results) console.log((r.ok ? 'PASS ' : 'FAIL ') + '[' + r.group + '] ' + r.name + (r.ok ? '' : '\n      ' + r.err));
 console.log('\n' + (results.length - failed.length) + '/' + results.length + ' passed');

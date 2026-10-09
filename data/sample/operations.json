@@ -1,39 +1,248 @@
 {
   "note": "Fictional operational data for the demo. Every name, email address, lead, interaction and transaction below is made up. The listing ids point to the public listing snapshot.",
   "Contacts": [
-    {"contact_id": "C-0351", "name": "Brian Kessler", "email": "bkessler@example.com", "role": "agent", "language": "en", "first_seen": "2026-08-12", "last_contact": "2026-09-30"},
-    {"contact_id": "C-0366", "name": "Derek Lam", "email": "derek.lam@example.com", "role": "investor", "language": "en", "first_seen": "2026-09-02", "last_contact": "2026-09-18"},
-    {"contact_id": "C-0379", "name": "Keisha Monroe", "email": "keisha.m@example.com", "role": "buyer", "language": "en", "first_seen": "2026-09-15", "last_contact": "2026-10-01"},
-    {"contact_id": "C-0388", "name": "Gloria Haines", "email": "gloria.haines@example.com", "role": "seller", "language": "en", "first_seen": "2026-09-24", "last_contact": "2026-09-24"},
-    {"contact_id": "C-0412", "name": "Omar Siddiq", "email": "omar.siddiq@example.com", "role": "tenant", "language": "en", "first_seen": "2026-10-06", "last_contact": "2026-10-06"}
+    {
+      "contact_id": "C-0351",
+      "name": "Brian Kessler",
+      "email": "bkessler@example.com",
+      "role": "agent",
+      "language": "en",
+      "first_seen": "2026-08-12",
+      "last_contact": "2026-09-30"
+    },
+    {
+      "contact_id": "C-0366",
+      "name": "Derek Lam",
+      "email": "derek.lam@example.com",
+      "role": "investor",
+      "language": "en",
+      "first_seen": "2026-09-02",
+      "last_contact": "2026-09-18"
+    },
+    {
+      "contact_id": "C-0379",
+      "name": "Keisha Monroe",
+      "email": "keisha.m@example.com",
+      "role": "buyer",
+      "language": "en",
+      "first_seen": "2026-09-15",
+      "last_contact": "2026-10-01"
+    },
+    {
+      "contact_id": "C-0388",
+      "name": "Gloria Haines",
+      "email": "gloria.haines@example.com",
+      "role": "seller",
+      "language": "en",
+      "first_seen": "2026-09-24",
+      "last_contact": "2026-09-24"
+    },
+    {
+      "contact_id": "C-0412",
+      "name": "Omar Siddiq",
+      "email": "omar.siddiq@example.com",
+      "role": "tenant",
+      "language": "en",
+      "first_seen": "2026-10-06",
+      "last_contact": "2026-10-06"
+    }
   ],
   "Leads": [
-    {"lead_id": "L-0287", "contact_id": "C-0379", "kind": "buyer", "property_address": "4922 S 82nd St, Tampa", "listing_id": "EZ-4962", "stage": "Showing done", "created": "2026-09-15", "last_contact": "2026-10-01"},
-    {"lead_id": "L-0291", "contact_id": "C-0388", "kind": "seller", "property_address": "2214 Windward Palms Ct, Brandon", "listing_id": "", "stage": "Contacted", "created": "2026-09-24", "last_contact": "2026-09-24"},
-    {"lead_id": "L-0301", "contact_id": "C-0412", "kind": "rental", "property_address": "8594 Briar Grove Cir, Tampa", "listing_id": "EZ-5005", "stage": "Applied", "created": "2026-10-06", "last_contact": "2026-10-06"}
+    {
+      "lead_id": "L-0287",
+      "contact_id": "C-0379",
+      "kind": "buyer",
+      "property_address": "4922 S 82nd St, Tampa",
+      "listing_id": "EZ-4962",
+      "stage": "Showing done",
+      "created": "2026-09-15",
+      "last_contact": "2026-10-01",
+      "source_message_id": "1996e2a04c7d5b11"
+    },
+    {
+      "lead_id": "L-0291",
+      "contact_id": "C-0388",
+      "kind": "seller",
+      "property_address": "2214 Windward Palms Ct, Brandon",
+      "listing_id": "",
+      "stage": "Contacted",
+      "created": "2026-09-24",
+      "last_contact": "2026-09-24",
+      "source_message_id": "1997f0b2c4d81a90"
+    },
+    {
+      "lead_id": "L-0301",
+      "contact_id": "C-0412",
+      "kind": "rental",
+      "property_address": "8594 Briar Grove Cir, Tampa",
+      "listing_id": "EZ-5005",
+      "stage": "Applied",
+      "created": "2026-10-06",
+      "last_contact": "2026-10-06",
+      "source_message_id": "199a8d73e5f01c28"
+    }
   ],
   "Interactions": [
-    {"interaction_id": "I-1176", "contact_id": "C-0379", "lead_id": "L-0287", "gmail_message_id": "1996e2a04c7d5b11", "received_at": "2026-09-15T14:02:00Z", "category": "buyer_inquiry", "summary": "Asked to see 4922 S 82nd St."},
-    {"interaction_id": "I-1177", "contact_id": "C-0388", "lead_id": "L-0291", "gmail_message_id": "1997f0b2c4d81a90", "received_at": "2026-09-24T13:41:00Z", "category": "seller_lead", "summary": "Wants to sell a 3 bed / 2 bath house in Brandon, asked about a cash offer."},
-    {"interaction_id": "I-1178", "contact_id": "C-0351", "lead_id": "T-0117", "gmail_message_id": "19986c1f02ab3e47", "received_at": "2026-09-30T18:20:00Z", "category": "contract_update", "summary": "Sent the executed contract for 4415 Booker T Dr."},
-    {"interaction_id": "I-1179", "contact_id": "C-0412", "lead_id": "L-0301", "gmail_message_id": "199a8d73e5f01c28", "received_at": "2026-10-06T15:12:00Z", "category": "rental_inquiry", "summary": "Applied for 8594 Briar Grove Cir."}
+    {
+      "interaction_id": "I-1176",
+      "contact_id": "C-0379",
+      "lead_id": "L-0287",
+      "gmail_message_id": "1996e2a04c7d5b11",
+      "received_at": "2026-09-15T14:02:00Z",
+      "category": "buyer_inquiry",
+      "summary": "Asked to see 4922 S 82nd St."
+    },
+    {
+      "interaction_id": "I-1177",
+      "contact_id": "C-0388",
+      "lead_id": "L-0291",
+      "gmail_message_id": "1997f0b2c4d81a90",
+      "received_at": "2026-09-24T13:41:00Z",
+      "category": "seller_lead",
+      "summary": "Wants to sell a 3 bed / 2 bath house in Brandon, asked about a cash offer."
+    },
+    {
+      "interaction_id": "I-1178",
+      "contact_id": "C-0351",
+      "lead_id": "T-0117",
+      "gmail_message_id": "19986c1f02ab3e47",
+      "received_at": "2026-09-30T18:20:00Z",
+      "category": "contract_update",
+      "summary": "Sent the executed contract for 4415 Booker T Dr."
+    },
+    {
+      "interaction_id": "I-1179",
+      "contact_id": "C-0412",
+      "lead_id": "L-0301",
+      "gmail_message_id": "199a8d73e5f01c28",
+      "received_at": "2026-10-06T15:12:00Z",
+      "category": "rental_inquiry",
+      "summary": "Applied for 8594 Briar Grove Cir."
+    }
   ],
   "Transactions": [
-    {"txn_id": "T-0112", "listing_id": "EZ-4963", "address": "8711 River Forest Cir, Tampa", "buyer_agent": "agent.one@example.com", "closing_date": "2026-10-16", "status": "Under contract"},
-    {"txn_id": "T-0117", "listing_id": "EZ-4961", "address": "4415 Booker T Dr, Tampa", "buyer_agent": "bkessler@example.com", "closing_date": "2026-10-23", "status": "Under contract"},
-    {"txn_id": "T-0120", "listing_id": "EZ-4980", "address": "110 Virginia Ave, Seffner", "buyer_agent": "agent.two@example.com", "closing_date": "2026-11-02", "status": "Under contract"}
+    {
+      "txn_id": "T-0112",
+      "listing_id": "EZ-4963",
+      "address": "8711 River Forest Cir, Tampa",
+      "buyer_agent": "agent.one@example.com",
+      "closing_date": "2026-10-16",
+      "status": "Under contract"
+    },
+    {
+      "txn_id": "T-0117",
+      "listing_id": "EZ-4961",
+      "address": "4415 Booker T Dr, Tampa",
+      "buyer_agent": "bkessler@example.com",
+      "closing_date": "2026-10-23",
+      "status": "Under contract"
+    },
+    {
+      "txn_id": "T-0120",
+      "listing_id": "EZ-4980",
+      "address": "110 Virginia Ave, Seffner",
+      "buyer_agent": "agent.two@example.com",
+      "closing_date": "2026-11-02",
+      "status": "Under contract"
+    }
   ],
   "Review": [],
   "Journal": [
-    {"key": "inbox@ezway.example:1997f0b2c4d81a90", "message_id": "1997f0b2c4d81a90", "thread_id": "1997f0b2c4d81a90", "state": "DONE", "record": "New seller lead L-0291", "sheet_ops": "Contacts C-0388 added; Leads L-0291 added; Interactions I-1177 added", "draft_id": "r-58210931", "attempts": 0, "pending_since": "", "updated": "2026-09-24T13:50:00Z", "error": ""}
+    {
+      "key": "inbox@ezway.example:1997f0b2c4d81a90",
+      "message_id": "1997f0b2c4d81a90",
+      "thread_id": "1997f0b2c4d81a90",
+      "state": "DONE",
+      "record": "New seller lead L-0291",
+      "sheet_ops": "Contacts C-0388 added; Leads L-0291 added; Interactions I-1177 added",
+      "draft_id": "r-58210931",
+      "attempts": 0,
+      "pending_since": "",
+      "updated": "2026-09-24T13:50:00Z",
+      "error": ""
+    }
   ],
   "headers": {
-    "Contacts": ["contact_id", "name", "email", "role", "language", "first_seen", "last_contact"],
-    "Leads": ["lead_id", "contact_id", "kind", "property_address", "listing_id", "stage", "created", "last_contact"],
-    "Interactions": ["interaction_id", "contact_id", "lead_id", "gmail_message_id", "received_at", "category", "summary"],
-    "Transactions": ["txn_id", "listing_id", "address", "buyer_agent", "closing_date", "status"],
-    "Review": ["review_id", "ref", "field", "current_value", "proposed_value", "source", "status", "created"],
-    "Journal": ["key", "message_id", "thread_id", "state", "record", "sheet_ops", "draft_id", "attempts", "pending_since", "updated", "error"],
-    "Listings": ["listing_id", "address", "unit", "city", "state", "zip", "status", "type", "financing_listed", "price", "rent", "deposit", "beds", "baths", "heated_sqft", "section8_welcome", "backup_offers_ok", "source_url", "captured_at"]
+    "Contacts": [
+      "contact_id",
+      "name",
+      "email",
+      "role",
+      "language",
+      "first_seen",
+      "last_contact"
+    ],
+    "Leads": [
+      "lead_id",
+      "contact_id",
+      "kind",
+      "property_address",
+      "listing_id",
+      "stage",
+      "created",
+      "last_contact",
+      "source_message_id"
+    ],
+    "Interactions": [
+      "interaction_id",
+      "contact_id",
+      "lead_id",
+      "gmail_message_id",
+      "received_at",
+      "category",
+      "summary"
+    ],
+    "Transactions": [
+      "txn_id",
+      "listing_id",
+      "address",
+      "buyer_agent",
+      "closing_date",
+      "status"
+    ],
+    "Review": [
+      "review_id",
+      "ref",
+      "field",
+      "current_value",
+      "proposed_value",
+      "source",
+      "status",
+      "created"
+    ],
+    "Journal": [
+      "key",
+      "message_id",
+      "thread_id",
+      "state",
+      "record",
+      "sheet_ops",
+      "draft_id",
+      "attempts",
+      "pending_since",
+      "updated",
+      "error"
+    ],
+    "Listings": [
+      "listing_id",
+      "address",
+      "unit",
+      "city",
+      "state",
+      "zip",
+      "status",
+      "type",
+      "financing_listed",
+      "price",
+      "rent",
+      "deposit",
+      "beds",
+      "baths",
+      "heated_sqft",
+      "section8_welcome",
+      "backup_offers_ok",
+      "source_url",
+      "captured_at"
+    ]
   }
 }

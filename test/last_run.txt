@@ -28,5 +28,13 @@ PASS [journal] 6. A draft already sent is not created again (finished run, and a
 PASS [journal] 7. Two runs at the same time do not apply the same operation twice
 PASS [runs] A run stops at MAX_PER_RUN and the next run continues
 PASS [runs] A failing message is recorded in the journal and goes to review after three attempts
+PASS [install] Fresh install: an old message in a recent thread is never processed, the thread gets one draft
+PASS [install] Two unprocessed messages in one thread: only the latest gets a draft, the earlier one is still logged
+PASS [install] A thread that already has an unsent draft never gets a second one
+PASS [install] Finished messages never starve new mail: 30 done messages ahead, the new one is handled in the first run
+PASS [rerun] Model failure after the sheet writes, then a rerun: one lead only (seller with no address)
+PASS [rerun] The same seller writing again with no address is attached to the existing seller lead
+PASS [facts] The draft check catches amounts without $, dates, percentages, lowercase addresses and eligibility or acceptance claims
+PASS [records] "82nd Ave" resolves to the only avenue; "82nd" alone stays ambiguous
 
-30/30 passed
+38/38 passed

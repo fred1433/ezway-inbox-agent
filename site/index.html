@@ -27,7 +27,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--sky);outline-offset
 /* breeze-block band: the mid-century concrete screen of the carports on Booker T Dr and Dartmouth Ave */
 .band{height:30px;background-color:var(--pink);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Cg fill='none' stroke='%23E3B7AB' stroke-width='2'%3E%3Ccircle cx='15' cy='15' r='9'/%3E%3Cpath d='M15 1v28M1 15h28'/%3E%3C/g%3E%3C/svg%3E");border-bottom:1px solid #E3B7AB}
 
-header.top{padding:22px 0 18px}
+header.top{padding-top:22px;padding-bottom:18px}
 .who{font-size:15px;color:var(--ink-soft);margin:0 0 8px;font-variation-settings:"wdth" 90}
 .who b{color:var(--ink);font-weight:650}
 h1{font-size:clamp(32px,3.4vw,46px);line-height:1.04;margin:0;font-weight:680;letter-spacing:-.015em;font-variation-settings:"opsz" 96,"wdth" 82}
@@ -64,7 +64,7 @@ h1{font-size:clamp(32px,3.4vw,46px);line-height:1.04;margin:0;font-weight:680;le
 .letter .meta{font-family:var(--display);font-size:14px;color:var(--ink-soft);margin-bottom:10px;line-height:1.45}
 .letter .meta b{color:var(--ink);font-weight:600}
 .letter p{margin:0 0 .7em}
-mark{background:linear-gradient(100deg,transparent 0 2%,var(--hl) 3% 96%,transparent 98%);color:inherit;padding:0 2px;border-radius:2px}
+mark{background:var(--hl);color:inherit;padding:0;border-radius:2px;box-shadow:0 0 0 2px var(--hl)}
 .attach{display:inline-block;font-family:var(--display);font-size:13.5px;border:1px solid var(--line);border-radius:3px;padding:3px 9px;margin-top:4px;color:#34424B}
 .read{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
 .read li{font-size:13.5px;background:#F3F6F4;border-radius:3px;padding:3px 9px;color:#34424B}
@@ -157,7 +157,7 @@ footer img{width:20px;height:20px}
 <header class="top wrap">
   <p class="who"><b>EZ Way Houses</b>, inbox agent demo</p>
   <h1>This morning's inbox, matched to your houses.</h1>
-  <p class="lede">Five sample emails. Each one is matched to the house or the person it is about, logged in the sheets, and answered with a reply that waits in Gmail as a draft. Pick an email to open it.</p>
+  <p class="lede">Five sample emails. Each one is matched to the house or the person it is about, logged in the sheets, and given a draft reply to leave in Gmail. Pick an email to open it.</p>
   <p class="honest">Sample emails · Public listing snapshot dated Oct 9, 2026 · Illustrative replies</p>
 </header>
 
@@ -176,16 +176,16 @@ footer img{width:20px;height:20px}
       <ul class="rules">
         <li><b>It lives in one Gmail account.</b> A Google Apps Script, authorized by the owner of that mailbox, checks for new mail on a timer and works through a small batch each time. Rolling it out to more of the team depends on which inboxes receive these emails and who owns the sheets.</li>
         <li><b>It never sends.</b> The code has no send operation. Replies wait as drafts in the same thread, addressed to the sender, until someone on the team reads and sends them.</li>
-        <li><b>The numbers come from your rows, not from the model.</b> Every price, rent, deposit, address and date in a draft is filled in by the code from the matched record, then checked again before the draft is saved. If anything does not match, the draft is held for a person.</li>
+        <li><b>The numbers come from the listing record, not from the model.</b> Prices, rents, deposits, addresses and dates are filled in by the code from the matched record. Before a draft is saved, every number in it must appear in that record or in the email being answered, and words like approved, eligible, qualify or accepted are refused. If anything fails, the draft is held for a person.</li>
         <li><b>It writes little on its own.</b> New contacts, leads and interactions, and last-contact dates. A new closing date, price or term goes to a Review tab and the current value stays where it is.</li>
-        <li><b>Nothing is done twice.</b> A journal keyed by Gmail message keeps track of each step, so a rerun after a stop never makes a second lead or a second draft.</li>
+        <li><b>Nothing is done twice.</b> A journal keyed by Gmail message keeps track of each step, and each lead remembers the email that created it, so a rerun after a stop does not make a second lead or a second draft. Only mail received after installation is read, and a thread never gets two drafts.</li>
       </ul>
     </div>
     <div>
       <table>
         <caption>What has been tested so far</caption>
         <tbody>
-          <tr><th>Matching and sheet writes</th><td><span class="y">Run</span> on every build of this page, 30 automated tests with an in-memory Gmail and Sheets</td></tr>
+          <tr><th>Matching and sheet writes</th><td><span class="y">Run</span> on every build of this page, 38 automated tests with an in-memory Gmail and Sheets</td></tr>
           <tr><th>Resume after a stop, duplicates</th><td><span class="y">Tested</span> with simulated stops and two overlapping runs</td></tr>
           <tr><th>Reading emails, wording replies</th><td><span class="n">Recorded outputs</span> prepared for this demo</td></tr>
           <tr><th>Gmail and Sheets calls</th><td><span class="n">Written</span>, not yet run on a real account</td></tr>
@@ -206,6 +206,7 @@ footer img{width:20px;height:20px}
   var D = window.EZ, list = document.getElementById('list'), panel = document.getElementById('case');
   var mq = window.matchMedia('(max-width:860px)');
   var esc = function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+  var shortDate = function(iso){var p=String(iso).split('-');return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Number(p[1])-1]+' '+Number(p[2]);};
   var money = function(n){return n==null?'':'$'+Number(n).toLocaleString('en-US');};
   var FIN = {'FHA/VA/Conv':'FHA, VA, conventional or cash','Cash/Hard.M':'Cash or hard money only'};
   var FIELD = {name:'Name',email:'Email',role:'Role',language:'Language',last_contact:'Last contact',kind:'Kind',property_address:'Property',stage:'Stage',lead_id:'Linked to',category:'Category',summary:'Summary',ref:'Record',field:'Field',current_value:'Current value',proposed_value:'Proposed',status:'Status'};
@@ -268,14 +269,14 @@ footer img{width:20px;height:20px}
       }
     } else {
       var lead = c.trace.filter(function(t){return t.step==='Lead';})[0];
-      h += '<div class="file"><div class="addr"><mark>'+esc(c.extraction.seller_property)+'</mark></div><div class="city">The seller\'s own house, not one of your listings. Sample lead, opened Sep 24.</div></div>';
+      h += '<div class="file"><div class="addr"><mark>'+esc(c.extraction.seller_property)+'</mark></div><div class="city">The seller\'s own house, not one of your listings.'+(c.lead&&c.lead.created?' Sample lead '+esc(c.lead.id)+', opened '+shortDate(c.lead.created)+'.':'')+'</div></div>';
       if(lead) h += '<p class="why"><b>Why this lead:</b> '+esc(lead.why)+'.</p>';
     }
     return h+'</div>';
   }
   function changes(c){
     var because = {Contacts:'Contact', Leads:'Lead', Review:'Change'};
-    return '<div class="a-changes"><p class="cap">What it wrote in the sheets</p>'+c.changes.map(function(ch){
+    return '<div class="a-changes"><p class="cap">Rows it writes <span>(demo sheet)</span></p>'+c.changes.map(function(ch){
       var t = c.trace.filter(function(x){return x.step===because[ch.tab];})[0];
       ch.rows.forEach(function(r){ if(VAL[r.after]) r.after = VAL[r.after]; });
       return '<div class="chg"><h4>'+esc(ch.tab)+' <span>'+esc(ch.id)+', '+TABNOTE[ch.kind]+'</span></h4>'+(t&&t.why?'<p class="because">'+esc(t.why.charAt(0).toUpperCase()+t.why.slice(1))+'</p>':'')+'<dl>'+ch.rows.map(function(r){
@@ -287,7 +288,7 @@ footer img{width:20px;height:20px}
   }
   function draft(c){
     var d = c.draft;
-    return '<div class="a-draft"><p class="cap">The reply it left in Gmail</p><div class="draft"><div class="dh"><span>To <b>'+esc(d.to)+'</b><br>'+esc(d.subject)+'</span><span class="pill">Draft preview, not sent</span></div><div class="body">'+draftHtml(d)+'</div><div class="legend"><i>Underlined</i>: filled in by the code from the record, not typed by the model.</div></div></div>';
+    return '<div class="a-draft"><p class="cap">The draft reply it would leave in Gmail</p><div class="draft"><div class="dh"><span>To <b>'+esc(d.to)+'</b><br>'+esc(d.subject)+'</span><span class="pill">Draft preview, not sent</span></div><div class="body">'+draftHtml(d)+'</div><div class="legend"><i>Underlined</i>: filled in by the code from the record, not typed by the model.</div></div></div>';
   }
   function titleOf(c){
     if(c.listing) return c.listing.address;

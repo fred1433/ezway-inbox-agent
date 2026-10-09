@@ -118,13 +118,23 @@ function planMessage(msg, ex, t, config, today) {
     }
   }
 
+  // A lead already created from this very message (an earlier attempt that stopped half way) is reused: the source
+  // message id is the stable key, so a rerun never makes a second lead.
+  var priorLead = t.Leads.filter(function (l) { return l.source_message_id === msg.id; })[0];
+  function reusePrior() {
+    lead = priorLead;
+    trace.push({ step: 'Lead', result: 'Lead ' + lead.lead_id + ' (created by an earlier attempt on this email)', why: 'same source message ' + msg.id });
+  }
+
   if (listing && (ex.category === 'buyer_inquiry' || ex.category === 'rental_inquiry')) {
-    lead = t.Leads.filter(function (l) { return l.contact_id === contact.contact_id && l.listing_id === listing.listing_id; })[0];
-    if (lead) {
+    lead = priorLead || t.Leads.filter(function (l) { return l.contact_id === contact.contact_id && l.listing_id === listing.listing_id; })[0];
+    if (priorLead) {
+      reusePrior();
+    } else if (lead) {
       trace.push({ step: 'Lead', result: 'Existing lead ' + lead.lead_id, why: 'same contact and same listing' });
       ops.push({ op: 'update', tab: 'Leads', key: ['lead_id', lead.lead_id], fields: { last_contact: today } });
     } else {
-      lead = { lead_id: nextId(t.Leads, 'lead_id', 'L-'), contact_id: contact.contact_id, kind: ex.category === 'rental_inquiry' ? 'rental' : 'buyer', property_address: listing.address + ', ' + listing.city, listing_id: listing.listing_id, stage: 'New inquiry', created: today, last_contact: today };
+      lead = { lead_id: nextId(t.Leads, 'lead_id', 'L-'), contact_id: contact.contact_id, kind: ex.category === 'rental_inquiry' ? 'rental' : 'buyer', property_address: listing.address + ', ' + listing.city, listing_id: listing.listing_id, stage: 'New inquiry', created: today, last_contact: today, source_message_id: msg.id };
       trace.push({ step: 'Lead', result: 'New ' + lead.kind + ' lead ' + lead.lead_id, why: 'no lead yet for this contact on this listing' });
       ops.push({ op: 'append', tab: 'Leads', row: lead });
     }
@@ -132,8 +142,15 @@ function planMessage(msg, ex, t, config, today) {
 
   if (ex.category === 'seller_lead') {
     var own = t.Leads.filter(function (l) { return l.contact_id === contact.contact_id && l.kind === 'seller'; });
-    var sm = ex.seller_property ? matchAddress(ex.seller_property, own, function (l) { return l.property_address; }, cities, own.length === 1 ? 'seller lead of this contact' : 'seller leads of this contact') : { status: 'none', reason: 'no address given' };
-    if (sm.status === 'unique') {
+    var sm;
+    if (priorLead) sm = { status: 'prior' };
+    else if (ex.seller_property) sm = matchAddress(ex.seller_property, own, function (l) { return l.property_address; }, cities, own.length === 1 ? 'seller lead of this contact' : 'seller leads of this contact');
+    else if (own.length === 1) sm = { status: 'unique', record: own[0], reason: 'no address in this email, and ' + own[0].lead_id + ' is the only seller lead of this contact' };
+    else if (own.length > 1) sm = { status: 'ambiguous', candidates: own, reason: 'no address in this email, and this contact has ' + own.length + ' seller leads' };
+    else sm = { status: 'none' };
+    if (sm.status === 'prior') {
+      reusePrior();
+    } else if (sm.status === 'unique') {
       lead = sm.record;
       trace.push({ step: 'Lead', result: 'Existing seller lead ' + lead.lead_id, why: sm.reason });
       ops.push({ op: 'update', tab: 'Leads', key: ['lead_id', lead.lead_id], fields: { last_contact: today } });
@@ -141,7 +158,7 @@ function planMessage(msg, ex, t, config, today) {
       review = { field: 'seller lead', current: '', proposed: sm.candidates.map(function (c) { return c.property_address; }).join(' | '), reason: sm.reason };
       trace.push({ step: 'Lead', result: 'Ambiguous seller lead', why: sm.reason });
     } else {
-      lead = { lead_id: nextId(t.Leads, 'lead_id', 'L-'), contact_id: contact.contact_id, kind: 'seller', property_address: ex.seller_property || '', listing_id: '', stage: 'New seller lead', created: today, last_contact: today };
+      lead = { lead_id: nextId(t.Leads, 'lead_id', 'L-'), contact_id: contact.contact_id, kind: 'seller', property_address: ex.seller_property || '', listing_id: '', stage: 'New seller lead', created: today, last_contact: today, source_message_id: msg.id };
       trace.push({ step: 'Lead', result: 'New seller lead ' + lead.lead_id, why: ex.seller_property ? 'this contact has no lead for ' + ex.seller_property : 'no address given yet' });
       ops.push({ op: 'append', tab: 'Leads', row: lead });
     }
@@ -178,10 +195,11 @@ function planMessage(msg, ex, t, config, today) {
   }
 
   // 4. Status, facts and the one next action the draft may take
+  var leadIsNew = !!lead && (lead === priorLead || ops.some(function (o) { return o.op === 'append' && o.tab === 'Leads'; }));
   var f = buildFacts(listing, { first_name: firstName(contact.name) });
   if (ex.category === 'seller_lead') {
     f.seller_property = lead.property_address;
-    plan.status = lead.created === today ? 'New seller lead' : 'Existing lead found';
+    plan.status = leadIsNew ? 'New seller lead' : 'Existing lead found';
     f.next_action = 'acknowledge_seller_details';
   } else if (ex.category === 'contract_update') {
     f.current_value = fmtDateLong(txn[ex.contract_change.field], ex.language);
@@ -209,7 +227,7 @@ function planMessage(msg, ex, t, config, today) {
         f.next_action = 'ask_budget_and_area';
       }
     } else {
-      plan.status = lead && lead.created !== today ? 'Existing lead found' : 'Listing matched';
+      plan.status = lead && !leadIsNew ? 'Existing lead found' : 'Listing matched';
       f.next_action = 'confirm_listed_terms_and_showing';
     }
   } else if (ex.category === 'contractor_application') {
@@ -217,7 +235,7 @@ function planMessage(msg, ex, t, config, today) {
   } else {
     plan.status = 'Logged for the team'; f.next_action = 'acknowledge';
   }
-  plan.facts = f; plan.nextAction = f.next_action;
+  plan.facts = f; plan.nextAction = f.next_action; plan.lead = lead;
   return plan;
 }
 
@@ -261,7 +279,8 @@ function loadTables(sheets) {
  * Processes one message end to end. The journal row (mailbox + Gmail message id) is the source of truth for
  * progress; the Gmail label is only for people (R7).
  */
-function processMessage(msg, deps) {
+function processMessage(msg, deps, opts) {
+  opts = opts || {};
   var cfg = deps.config, journal = deps.journal, key = deps.mailboxId + ':' + msg.id;
   var now = nowParts(deps.clock, cfg.TIMEZONE);
   var j = journal.get(key);
@@ -300,6 +319,13 @@ function processMessage(msg, deps) {
   var record = plan.trace.filter(function (s) { return s.step === 'Listing' || s.step === 'Lead' || s.step === 'Transaction'; }).map(function (s) { return s.result; }).join(' / ');
   journal.put(key, { message_id: msg.id, thread_id: msg.threadId, state: 'SHEET_DONE', record: record, sheet_ops: result.applied.map(function (a) { return a.tab + ' ' + a.id + ' ' + a.kind; }).join('; '), error: '' });
 
+  if (plan.draft && opts.noDraft) {
+    journal.put(key, { state: 'DONE', draft_id: 'none: a later message in this thread gets the reply' });
+    deps.mailbox.addLabel(msg.threadId, cfg.LABEL_PROCESSED);
+    result.status = plan.status; result.superseded = true;
+    return result;
+  }
+
   if (!plan.draft) {
     var state = plan.review ? 'REVIEW' : 'DONE';
     journal.put(key, { state: state });
@@ -311,13 +337,23 @@ function processMessage(msg, deps) {
   var d = deps.model.draft(msg, cleaned.value, plan.facts, plan.nextAction);
   var template = d && typeof d.template === 'string' ? d.template : '';
   var rendered = renderDraft(template, plan.facts, { language: cleaned.value.language, first_name: plan.facts.first_name, config: cfg });
-  var problems = rendered.problems.concat(validateDraft(rendered.text, plan.facts, cfg));
+  var problems = rendered.problems.concat(validateDraft(rendered.text, plan.facts, cfg, msg.subject + '\n' + msg.body));
   result.draft = { text: rendered.text, template: template, problems: problems, to: normEmail(msg.from), subject: /^re:/i.test(msg.subject) ? msg.subject : 'Re: ' + msg.subject };
   if (problems.length) {
     applyOps([{ op: 'append', tab: 'Review', row: { review_id: nextId(t.Review, 'review_id', 'R-'), ref: msg.id, field: 'draft', current_value: '', proposed_value: '', source: 'draft blocked: ' + problems.join('; '), status: 'To review', created: now.date } }], deps.sheets, t);
     journal.put(key, { state: 'REVIEW', error: problems.join('; ') });
     deps.mailbox.addLabel(msg.threadId, cfg.LABEL_REVIEW);
     result.status = 'Draft held for review';
+    return result;
+  }
+
+  // One draft per thread: if an unsent draft is already waiting in this thread, it is kept and flagged for a person.
+  var waiting = deps.mailbox.findDraftInThread(msg.threadId, 0);
+  if (waiting) {
+    applyOps([{ op: 'append', tab: 'Review', row: { review_id: nextId(t.Review, 'review_id', 'R-'), ref: msg.id, field: 'draft', current_value: waiting, proposed_value: '', source: 'new message in a thread that already has an unsent draft; that draft was kept', status: 'To review', created: now.date } }], deps.sheets, t);
+    journal.put(key, { state: 'DONE', draft_id: 'kept ' + waiting, error: '' });
+    deps.mailbox.addLabel(msg.threadId, cfg.LABEL_REVIEW);
+    result.status = 'Draft already waiting in thread';
     return result;
   }
 
@@ -330,23 +366,33 @@ function processMessage(msg, deps) {
   return result;
 }
 
-/** One timed run: a lock against overlapping runs, a bounded batch, failures recorded where people see them (R5, R7). */
+/**
+ * One timed run (R5, R7): a lock against overlapping runs; only messages received after the later of the look-back
+ * window and INSTALLED_AT; messages already finished in the journal are removed BEFORE the batch is cut, so new mail is
+ * never starved; in each thread only the latest incoming message gets a draft, earlier ones are logged without one.
+ */
 function runBatch(deps) {
-  var lock = deps.lock;
+  var lock = deps.lock, cfg = deps.config;
   if (!lock.tryLock(5000)) return { locked: true, processed: [] };
   var started = deps.clock.now().getTime(), out = [];
   try {
-    var msgs = deps.mailbox.listCandidates(deps.config.QUERY, deps.config.MAX_PER_RUN * 3);
-    for (var i = 0; i < msgs.length && out.filter(function (r) { return !r.skipped; }).length < deps.config.MAX_PER_RUN; i++) {
-      if (deps.clock.now().getTime() - started > deps.config.MAX_RUN_MS) break;
-      var key = deps.mailboxId + ':' + msgs[i].id;
+    var since = Math.max(started - (cfg.LOOKBACK_MS || 3 * 24 * 3600 * 1000), cfg.INSTALLED_AT ? Date.parse(cfg.INSTALLED_AT) : 0);
+    var finished = deps.journal.finishedKeys();
+    var keyOf = function (m) { return deps.mailboxId + ':' + m.id; };
+    var fresh = deps.mailbox.listCandidates(cfg.QUERY, since).filter(function (m) { return Date.parse(m.date) >= since && !finished[keyOf(m)]; });
+    var latest = {};
+    fresh.forEach(function (m) { if (!latest[m.threadId] || Date.parse(m.date) > Date.parse(latest[m.threadId].date)) latest[m.threadId] = m; });
+    fresh.sort(function (x, y) { return Date.parse(x.date) - Date.parse(y.date); });
+    for (var i = 0; i < fresh.length && out.length < cfg.MAX_PER_RUN; i++) {
+      if (deps.clock.now().getTime() - started > cfg.MAX_RUN_MS) break;
+      var m = fresh[i], key = keyOf(m);
       try {
-        out.push(processMessage(msgs[i], deps));
+        out.push(processMessage(m, deps, { noDraft: latest[m.threadId] !== m }));
       } catch (e) {
         var j = deps.journal.get(key) || {};
         var attempts = Number(j.attempts || 0) + 1;
-        deps.journal.put(key, { message_id: msgs[i].id, thread_id: msgs[i].threadId, state: attempts >= 3 ? 'REVIEW' : (j.state || 'ERROR'), attempts: attempts, error: String(e && e.message || e) });
-        if (attempts >= 3) deps.mailbox.addLabel(msgs[i].threadId, deps.config.LABEL_REVIEW);
+        deps.journal.put(key, { message_id: m.id, thread_id: m.threadId, state: attempts >= 3 ? 'REVIEW' : (j.state || 'ERROR'), attempts: attempts, error: String(e && e.message || e) });
+        if (attempts >= 3) deps.mailbox.addLabel(m.threadId, cfg.LABEL_REVIEW);
         out.push({ key: key, error: String(e && e.message || e), attempts: attempts });
       }
     }
@@ -362,6 +408,11 @@ function SheetJournal(sheets) {
 }
 SheetJournal.prototype.get = function (key) {
   return this.sheets.readTable('Journal').filter(function (r) { return r.key === key; })[0] || null;
+};
+SheetJournal.prototype.finishedKeys = function () {
+  var out = {};
+  this.sheets.readTable('Journal').forEach(function (r) { if (r.state === 'DONE' || r.state === 'REVIEW') out[r.key] = true; });
+  return out;
 };
 SheetJournal.prototype.put = function (key, fields) {
   var existing = this.get(key);

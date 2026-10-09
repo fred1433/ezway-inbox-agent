@@ -10,8 +10,8 @@ Live demo of the five sample cases: https://theaipipe.com/demos/ezway-inbox/
 
 | Part | Status |
 |---|---|
-| Matching and sheet writes | **Run**: 30 automated tests (`npm test`) with an in-memory Gmail and Sheets; the demo page is generated from this same run |
-| Resume after a stop, duplicates | **Tested with simulated failures**: stop after the draft, person sends the draft, two overlapping runs |
+| Matching and sheet writes | **Run**: 38 automated tests (`npm test`) with an in-memory Gmail and Sheets; the demo page is generated from this same run |
+| Resume after a stop, duplicates | **Tested with simulated failures**: stop after the draft, model failure after the sheet writes, person sends the draft, two overlapping runs, fresh install with old mail in a recent thread, 30 finished messages ahead of a new one |
 | Reading emails and wording replies | **Recorded outputs** (`fixtures/model_outputs.json`), prepared with Claude for the demo |
 | Gmail and Sheets calls (`src/Adapters.js`) | **Written, not yet run on a real account** |
 | Gemini (`GeminiModel` in `src/Models.js`) | **Not run**: written from the Gemini Interactions API documentation read on 2026-10-09 |
@@ -25,15 +25,22 @@ One pipeline (`src/Pipeline.js`) for every run. Two model adapters share the sam
 `draft()`: `FixtureModel` returns recorded outputs (tests and demo), `GeminiModel` calls the API. Matching, decisions,
 validation and sheet writes are the same code in both cases.
 
-1. **Journal check.** The `Journal` tab is keyed by mailbox + Gmail message id. A finished message is skipped. The Gmail
-   label `EZ/processed` is only there for people; progress is never read from it, so a new message in an old thread
-   is still handled.
+1. **Which messages.** Only incoming messages received after the later of `INSTALLED_AT` (set when the trigger is
+   installed) and a three-day look-back; older messages in a recent thread are never picked up. The search is paged,
+   and messages already finished in the `Journal` tab (keyed by mailbox + Gmail message id) are removed before the
+   batch is cut, so new mail is never stuck behind old mail. The Gmail label `EZ/processed` is only there for people;
+   progress is never read from it, so a new message in an old thread is still handled.
+   In a thread, only the latest incoming message gets a draft; earlier unanswered ones are logged without one. If a
+   thread already holds an unsent draft, it is kept and the new message goes to `Review`.
 2. **Extraction.** The model returns JSON in a closed schema (category, language, addresses as written, financing,
    budget, area, contract change with the quoted sentence). Unknown fields are dropped. An uncertain result goes to
    the `Review` tab with the label `EZ/needs review`.
 3. **Resolution, in this order:** contact (same sender address), then the property's lead or transaction, then a new
-   interaction. Address matching keeps the house number, street name, direction, unit and city: "8303 Bahia" is linked
-   when exactly one record fits; "the house on 82nd" fits two listings and is sent to a person.
+   interaction. Address matching keeps the house number, street name, street type, direction, unit and city:
+   "8303 Bahia" is linked when exactly one record fits; "82nd Ave" is the one avenue; "the house on 82nd" fits two
+   listings and is sent to a person. A seller who writes again without an address is attached to their only seller
+   lead (two or more: sent to a person). Each lead stores the id of the email that created it, so a rerun after a
+   failure reuses it instead of making a second one.
 4. **Decision, by the code.** Status (for example *Existing lead found*, *Financing mismatch*, *Change needs review*)
    and one allowed next action. A buyer whose financing is not among the listing's announced terms is offered other
    listings only when the email gives a budget and an area; otherwise the reply asks for them. An under-contract
@@ -43,9 +50,12 @@ validation and sheet writes are the same code in both cases.
    field. Text from email is written as a literal: `=IMPORTXML(...)` stays text.
 6. **Draft.** The model writes a template with slots (`{{price}}`, `{{rent}}`, `{{deposit}}`, `{{address}}`, ...).
    The code fills them from a typed facts object (listing id, source URL, capture date, price, rent, deposit, announced
-   financing, status). The result is checked again: every amount and street address must exist in the matched record,
-   rent and deposit cannot be swapped, no email address, no phone other than the office line, no link outside an
-   allow list, no "approved", "eligible" or "accepted" claim. A draft that fails is held for review.
+   financing, status). The result is checked again: every number in the draft (amounts with or without $, dates,
+   percentages, house numbers) must appear in the matched record or in the email being answered; street addresses
+   must match the record, whatever their case; rent and deposit cannot be swapped; no email address, no phone other
+   than the office line, no link outside an allow list; no "approved", "eligible", "qualify", "accepted" or Spanish
+   equivalents. A draft that fails is held for review. The check is a guard, not a proof: a person still reads every
+   draft before sending it.
 7. **Gmail.** `createDraftReply` on the original message: same thread, addressed to the sender. The repository contains
    no send call (a test checks it). After a stop between "draft requested" and "draft recorded", the next run adopts
    the draft already in the thread, or sees that a person already sent a reply, instead of making a second one.
@@ -71,9 +81,10 @@ several independent copies do not coordinate with each other.
      for speed and cost; `gemini-3.1-pro-preview` is the option to compare, and it is still a preview model.
    - `MAX_PER_RUN` (optional).
    Script properties are readable by anyone with edit access to the project.
-4. Run `processInbox` once by hand: Apps Script asks the account owner to approve Gmail, Sheets and external requests.
+4. Run `installTrigger` (step 5) before the first `processInbox`, then run `processInbox` once by hand: Apps Script asks the account owner to approve Gmail, Sheets and external requests.
    Apps Script handles much of the authorization; the settings above are the account-specific part.
-5. Run `installTrigger` to check the inbox every 10 minutes. The trigger is periodic, not instant.
+5. Run `installTrigger`: it records `INSTALLED_AT` (nothing received before it is ever processed) and checks the
+   inbox every 10 minutes. The trigger is periodic, not instant.
 
 ## Data in this repository
 
